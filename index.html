@@ -1,37 +1,37 @@
 <!doctype html>
 <html lang="ru">
 <head>
-  <meta charset="utf-8" />
-  <title>Моё превью</title>
+  <meta charset="utf-8">
+  <title>Моё превью для Discord</title>
 
-  <!-- ОБЯЗАТЕЛЬНО: абсолютные HTTPS-ссылки -->
-  <meta property="og:title" content="Твой заголовок для Discord" />
-  <meta property="og:description" content="Короткое описание превью" />
-  <meta property="og:image" content="https://<твой-логин>.github.io/assets/preview.jpg" />
-  <meta property="og:url" content="https://original-site.com/страница" />
+  <!-- ОБЯЗАТЕЛЬНЫЕ Open Graph теги -->
   <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://original-site.com/" />
+  <meta property="og:title" content="Тут будет красивый заголовок" />
+  <meta property="og:description" content="А здесь описание, которое появится в Discord Embed." />
+  <meta property="og:image" content="https://example.com/preview.jpg" />
 
-  <!-- Для Twitter (тоже помогает) -->
+  <!-- Дополнительно -->
+  <meta property="og:site_name" content="Мой сайт" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+
+  <!-- Twitter (иногда помогает) -->
   <meta name="twitter:card" content="summary_large_image" />
-  <meta name="twitter:title" content="Твой заголовок для Discord" />
-  <meta name="twitter:description" content="Короткое описание превью" />
-  <meta name="twitter:image" content="https://<твой-логин>.github.io/assets/preview.jpg" />
+  <meta name="twitter:title" content="Тут будет красивый заголовок" />
+  <meta name="twitter:description" content="А здесь описание, которое появится в Discord Embed." />
+  <meta name="twitter:image" content="https://example.com/preview.jpg" />
 
-  <!-- Редирект посетителей на оригинальную ссылку.
-       Оставь 1 секунду, чтобы боты успели считать мета-теги. -->
-  <meta http-equiv="refresh" content="1;url=https://original-site.com/страница" />
-
-  <!-- Канонический адрес — куда ведёт клик -->
-  <link rel="canonical" href="https://original-site.com/страница" />
+  <!-- Редирект через 1 секунду -->
+  <meta http-equiv="refresh" content="1;url=https://original-site.com/" />
 </head>
 <body>
-  <p>Если редирект не сработал, нажми:
-    <a href="https://original-site.com/страница">Перейти на оригинальную страницу</a>
-  </p>
+  <p>Если вас не перенаправило — перейдите <a href="https://original-site.com/">по ссылке</a>.</p>
+
   <script>
-    // На всякий случай — мгновенный редирект с JS (боты его игнорируют)
+    // JS-подстраховка: редирект после 1.2 сек (Discord-боты игнорируют JS, но юзеры — нет)
     setTimeout(function () {
-      window.location.replace("https://original-site.com/страница");
+      window.location.replace("https://original-site.com/");
     }, 1200);
   </script>
 </body>
