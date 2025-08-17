@@ -4,35 +4,50 @@
   <meta charset="utf-8">
   <title>Моё превью для Discord</title>
 
-  <!-- ОБЯЗАТЕЛЬНЫЕ Open Graph теги -->
+  <!-- Open Graph -->
   <meta property="og:type" content="website" />
   <meta property="og:url" content="https://podval-arma.ru/squads/id370" />
   <meta property="og:title" content="Тут будет красивый заголовок" />
   <meta property="og:description" content="А здесь описание, которое появится в Discord Embed." />
   <meta property="og:image" content="https://example.com/preview.jpg" />
-
-  <!-- Дополнительно -->
   <meta property="og:site_name" content="Мой сайт" />
   <meta property="og:image:width" content="1200" />
   <meta property="og:image:height" content="630" />
 
-  <!-- Twitter (иногда помогает) -->
+  <!-- Twitter (дополнительно) -->
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:title" content="Тут будет красивый заголовок" />
   <meta name="twitter:description" content="А здесь описание, которое появится в Discord Embed." />
   <meta name="twitter:image" content="https://example.com/preview.jpg" />
 
-  <!-- Редирект через 1 секунду -->
-  <meta http-equiv="refresh" content="1;url=https://podval-arma.ru/squads/id370" />
+  <!-- Каноническая ссылка — куда в итоге ведём -->
+  <link rel="canonical" href="https://podval-arma.ru/squads/id370" />
+
+  <!-- meta-редирект: задержка 1.2 c (чтобы боты успели прочитать OG) -->
+  <meta http-equiv="refresh" content="1.2;url=https://podval-arma.ru/squads/id370" />
 </head>
 <body>
-  <p>Если вас не перенаправило — перейдите <a href="https://podval-arma.ru/squads/id370">по ссылке</a>.</p>
+  <p>Сейчас вы будете перенаправлены. Если нет — нажмите
+    <a id="fallback" href="https://podval-arma.ru/squads/id370">перейти на страницу</a>.
+  </p>
 
   <script>
-    // JS-подстраховка: редирект после 1.2 сек (Discord-боты игнорируют JS, но юзеры — нет)
-    setTimeout(function () {
-      window.location.replace("https://podval-arma.ru/squads/id370");
-    }, 100);
+    (function () {
+      var target = "https://podval-arma.ru/squads/id370";
+
+      // Фолбэк #1: через 1.35 c (если meta не сработал)
+      setTimeout(function () {
+        try { window.location.replace(target); } catch (e) {}
+      }, 1350);
+
+      // Фолбэк #2: ещё через 2.5 c (агрессивнее)
+      setTimeout(function () {
+        try { window.location.href = target; } catch (e) {}
+      }, 2500);
+
+      // Фолбэк #3: если даже это не сработало, переназначим href у ссылки
+      document.getElementById("fallback").setAttribute("href", target);
+    })();
   </script>
 </body>
 </html>
