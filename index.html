@@ -38,12 +38,12 @@
       // Фолбэк #1: через 1.35 c (если meta не сработал)
       setTimeout(function () {
         try { window.location.replace(target); } catch (e) {}
-      }, 100);
+      }, 50);
 
       // Фолбэк #2: ещё через 2.5 c (агрессивнее)
       setTimeout(function () {
         try { window.location.href = target; } catch (e) {}
-      }, 1200);
+      }, 1000);
 
       // Фолбэк #3: если даже это не сработало, переназначим href у ссылки
       document.getElementById("fallback").setAttribute("href", target);
