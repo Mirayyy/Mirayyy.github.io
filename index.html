@@ -1,4 +1,11 @@
-<!DOCTYPE html>
+const STORE_KEY = 'savedTargets9m22';
+    let saved = [];
+    function loadSaved(){
+      try{ saved = JSON.parse(localStorage.getItem(STORE_KEY) || '[]'); }
+      catch{ saved = []; }
+      renderSaved();
+    }
+    function persist(){ localStorage.setItem(STORE_KEY, JSON.stringify(saved)); }<!DOCTYPE html>
 <html lang="ru">
 <head>
   <meta charset="UTF-8" />
@@ -8,7 +15,7 @@
     :root { --bg:#0b0f18; --card:#121826; --ink:#e8eefc; --muted:#9fb2d9; --accent:#7aa2ff; --line:#1f2940; --warn:#ffb020; --err:#ff6b6b; }
     *{box-sizing:border-box}
     body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell,"Noto Sans",sans-serif}
-    .wrap{max-width:980px;margin:40px auto;padding:0 20px}
+    .wrap{max-width:960px;margin:40px auto;padding:0 20px}
     .card{background:var(--card);border:1px solid var(--line);border-radius:20px;box-shadow:0 10px 30px rgba(0,0,0,.25);padding:24px}
     h1{font-size:22px;margin:0 0 14px}
     p.lead{color:var(--muted);margin:0 0 18px}
@@ -16,12 +23,13 @@
     .col-3{grid-column:span 3}
     .col-4{grid-column:span 4}
     .col-6{grid-column:span 6}
+    .col-8{grid-column:span 8}
     .col-12{grid-column:span 12}
-    @media (max-width:800px){.col-3,.col-4,.col-6{grid-column:span 12}}
+    @media (max-width:900px){.col-6,.col-8,.col-4,.col-3{grid-column:span 12}}
     label{display:block;font-size:13px;color:var(--muted);margin:6px 0}
     input{width:100%;padding:12px 14px;border-radius:12px;border:1px solid var(--line);background:#0d1322;color:var(--ink);outline:none}
-    input:focus{border-color:#2b3b66;box-shadow:0 0 0 3px rgba(122,162,255,.15)}
     input[readonly]{opacity:.85}
+    input:focus{border-color:#2b3b66;box-shadow:0 0 0 3px rgba(122,162,255,.15)}
     .row{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
     .btn{appearance:none;border:1px solid var(--line);background:#0d1322;color:var(--ink);padding:12px 16px;border-radius:12px;cursor:pointer;transition:background .2s}
     .btn.primary{background:var(--accent);border-color:transparent;color:#0b1020;font-weight:700}
@@ -34,27 +42,30 @@
     .mono{font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace}
     .warn{color:var(--warn)} .err{color:var(--err)}
     .sep{height:1px;background:var(--line);margin:16px 0}
-    table{width:100%;border-collapse:separate;border-spacing:0 6px}
-    th,td{padding:10px 12px;background:#0d1322;border:1px solid var(--line)}
-    th{color:var(--muted);font-weight:600}
-    td{vertical-align:middle}
-    td .muted{font-size:12px}
+    details summary{cursor:pointer;color:var(--accent);font-weight:600}
+    details[open] summary{margin-bottom:8px}
+    table{width:100%;border-collapse:separate;border-spacing:0 8px}
+    th,td{padding:10px 12px;border:1px solid var(--line);background:#0d1322}
+    th{background:#0f1628;color:var(--muted);font-weight:600;text-align:left}
+    td:first-child,th:first-child{border-top-left-radius:10px;border-bottom-left-radius:10px}
+    td:last-child,th:last-child{border-top-right-radius:10px;border-bottom-right-radius:10px}
+    .actions{display:flex;gap:8px}
   </style>
 </head>
 <body>
   <div class="wrap">
     <div class="card">
       <h1>Калькулятор: угол места + автоподбор прицела (тыс)</h1>
-      <p class="lead">Система 6000-на-круг. Базовый прицел берётся <b>из таблицы 9М22</b> с <b>линейной интерполяцией</b> между ближайшими точками. Далее добавляется поправка по углу места: <span class="mono">(Hц − Hор)/D × 1000</span>.</p>
+      <p class="lead">Система 6000-на-круг. Базовый прицел берётся <b>из таблицы 9М22</b> с <b>линейной интерполяцией</b> между ближайшими точками. Далее добавляется поправка по углу места: <span class="mono">(Hц − Hор)/D × 1000</span>. Можно сохранять временные цели.</p>
 
       <div class="grid">
         <div class="col-3">
-          <label for="dist">Дистанция до цели, м</label>
+          <label for="dist">Дистанция, м</label>
           <input id="dist" type="number" step="1" placeholder="например, 4851" />
         </div>
         <div class="col-3">
           <label for="az">Азимут, °</label>
-          <input id="az" type="number" step="0.1" placeholder="например, 179.5" />
+          <input id="az" type="number" step="0.1" placeholder="например, 175.7" />
         </div>
         <div class="col-3">
           <label for="ht">Высота цели, м</label>
@@ -65,20 +76,41 @@
           <input id="hg" type="number" step="0.01" placeholder="например, 0" />
         </div>
 
-        <div class="col-6">
-          <label for="tname">Название цели (для сохранения)</label>
-          <input id="tname" type="text" placeholder="например, Дом у дороги" />
+        <div class="col-8">
+          <label for="tgtName">Название цели</label>
+          <input id="tgtName" type="text" placeholder="например, Дом у перекрёстка" />
         </div>
-        <div class="col-6 row" style="align-items:end;">
+        <div class="col-4 row" style="align-items:flex-end;">
           <button id="calc" class="btn primary">Посчитать</button>
-          <button id="save" class="btn">Сохранить цель</button>
-          <button id="reset" class="btn">Сброс полей</button>
-          <span class="note">Сохранённые цели живут только до перезагрузки страницы.</span>
+          <button id="saveTarget" class="btn">Сохранить цель</button>
+          <button id="reset" class="btn">Сброс</button>
         </div>
 
         <div class="col-12">
           <div class="sep"></div>
           <div id="out" class="result mono"></div>
+        </div>
+
+        <div class="col-12">
+          <div class="sep"></div>
+          <h2 style="font-size:18px;margin:0 0 8px;">Сохранённые цели (временно)</h2>
+          <div class="note" style="margin-bottom:8px;">Хранятся локально в этом браузере \(<span class=\"mono\">localStorage<\/span>\) и сохраняются после обновления страницы. Удаляются при очистке данных сайта.</div>
+          <table>
+            <thead>
+              <tr>
+                <th>Название</th>
+                <th>Прицел (тыс)</th>
+                <th>Азимут (°)</th>
+                <th class="muted">Действия</th>
+              </tr>
+            </thead>
+            <tbody id="savedTable">
+              <tr><td colspan="4" class="muted">Пока пусто. Заполни поля и нажми «Сохранить цель».</td></tr>
+            </tbody>
+          </table>
+          <div class="row" style="justify-content:flex-end;margin-top:8px;">
+            <button id="clearAll" class="btn">Очистить все</button>
+          </div>
         </div>
       </div>
 
@@ -87,32 +119,19 @@
         <summary>Что внутри (таблица и правила)</summary>
         <div class="mono" style="font-size:13px;line-height:1.4;">
           Таблица 9М22 (Д → П тыс):<br>
-          3000→140, 3200→150, 3400→159, 3600→169, 3800→179, 4000→190,
-          4200→200, 4400→211, 4600→221, 4800→233, 5000→244, 5200→256,
-          5400→268, 5600→280, 5800→293, 6000→306, 6200→320, 6400→334,
-          6600→349, 6800→364, 7000→380, 7200→398, 7400→416, 7600→436,
+          3000→140, 3200→150, 3400→159, 3600→169, 3800→179, 4000→190,<br>
+          4200→200, 4400→211, 4600→221, 4800→233, 5000→244, 5200→256,<br>
+          5400→268, 5600→280, 5800→293, 6000→306, 6200→320, 6400→334,<br>
+          6600→349, 6800→364, 7000→380, 7200→398, 7400→416, 7600→436,<br>
           7800→458, 8000→482, 8200→509, 8400→543, 8600→587
         </div>
-        <p class="note">Интерполяция линейная между ближайшими 200-метровыми узлами. Вне диапазона — результат <b>экстраполируется</b> по ближайшему сегменту и помечается предупреждением.</p>
+        <p class="note">Интерполяция линейная между ближайшими 200‑метровыми узлами. Вне диапазона — результат <b>экстраполируется</b> по ближайшему сегменту и помечается предупреждением.</p>
       </details>
-
-      <div class="sep"></div>
-      <h2 style="font-size:18px;margin:0 0 8px">Сохранённые цели (временно)</h2>
-      <div class="note" id="emptyHint">Пока пусто. Заполни поля, нажми «Посчитать», затем «Сохранить цель».</div>
-      <div id="savedWrap" style="display:none">
-        <table>
-          <thead>
-            <tr><th>Название</th><th>Прицел (тыс.)</th><th>Азимут</th></tr>
-          </thead>
-          <tbody id="savedBody"></tbody>
-        </table>
-      </div>
-
     </div>
   </div>
 
   <script>
-    // ===== Таблица прицелов 9М22 =====
+    // ==== Таблица 9М22: Дистанция (м) → Прицел (тыс) ====
     const TABLE = [
       [3000,140],[3200,150],[3400,159],[3600,169],[3800,179],[4000,190],
       [4200,200],[4400,211],[4600,221],[4800,233],[5000,244],[5200,256],
@@ -140,86 +159,105 @@
       return {p, warn};
     }
 
-    // ===== Геометрия (угол места) =====
     function angleOfSiteMils(ht,hg,dist){ if (!(dist>0)) throw new Error('Дистанция должна быть > 0'); return ((ht-hg)/dist)*1000; }
     function roundMils(v){ return Math.round(v); }
     function milsToMMSS(v){ const sign=v<0?'-':''; const a=Math.abs(Math.trunc(v)); const mm=Math.floor(a/100); const ss=a%100; return `${sign}${String(mm).padStart(2,'0')}-${String(ss).padStart(2,'0')}`; }
 
-    // ===== UI helpers =====
-    const $=id=>document.getElementById(id);
-    const out=$('out');
-    const fmtNum=n=>(Math.round(n*100)/100).toFixed(2).replace('.', ',');
+    const $ = id => document.getElementById(id);
+    const out = $('out');
+    const fmtNum = n => (Math.round(n*100)/100).toFixed(2).replace('.', ',');
 
-    // ===== Расчёт =====
-    let lastCalc = null; // хранит последний расчёт для сохранения
+    // ==== Расчёт ====
+    function calculate(returnAll=false){
+      const dist = Number($('dist').value);
+      const ht = Number($('ht').value);
+      const hg = Number($('hg').value);
+      if(!Number.isFinite(dist)||!Number.isFinite(ht)||!Number.isFinite(hg)){
+        if(!returnAll) out.innerHTML = '<span class="err">Проверьте числовые поля.</span>';
+        throw new Error('bad-input');
+      }
+      const {p:baseSightFloat,warn} = interpSight(dist);
+      const baseSightInt = Math.round(baseSightFloat);
+      const angle = angleOfSiteMils(ht,hg,dist);
+      const angleR = roundMils(angle);
+      const finalSight = baseSightInt + angleR;
 
-    function calculate(){
-      try{
-        const dist=Number($('dist').value);
-        const az=Number($('az').value);
-        const ht=Number($('ht').value);
-        const hg=Number($('hg').value);
-        if(!Number.isFinite(dist)||!Number.isFinite(ht)||!Number.isFinite(hg)) throw new Error('Проверьте числовые поля.');
-        const {p:baseSightFloat,warn}=interpSight(dist);
-        const baseSightInt=Math.round(baseSightFloat);
-        const angle=angleOfSiteMils(ht,hg,dist);
-        const angleR=roundMils(angle);
-        const finalSight=baseSightInt+angleR;
-
-        lastCalc = {dist, az, baseSightInt, baseSightFloat, angle, angleR, finalSight};
-
-        out.innerHTML=[
+      if(!returnAll){
+        out.innerHTML = [
           warn?`<span class="warn">${warn}</span>`:'',
           `Базовый прицел по таблице: <span class="hl">${baseSightInt}</span> тыс <span class="muted">(интерп.: ${fmtNum(baseSightFloat)}; [${milsToMMSS(baseSightInt)}])</span>`,
           `Угол места (расчёт): <span class="hl">${fmtNum(angle)}</span> тыс`,
           `Угол места (округл.): <span class="hl">${angleR}</span> <span class="muted">[${milsToMMSS(angleR)}]</span>`,
           `Итоговый прицел: <span class="hl">${finalSight}</span> <span class="muted">[${milsToMMSS(finalSight)}]</span>`
         ].filter(Boolean).join('<br/>');
-      }catch(err){ out.innerHTML=`<span class="err">Ошибка: ${err.message}</span>`; lastCalc=null; }
+      }
+      return {baseSightInt, baseSightFloat, angle, angleR, finalSight};
     }
 
-    // ===== Временное сохранение целей (в памяти) =====
-    const saved=[]; // очищается при перезагрузке страницы
-
-    function renderSaved(){
-      const body=$('savedBody');
-      body.innerHTML='';
-      if(saved.length===0){
-        $('savedWrap').style.display='none';
-        $('emptyHint').style.display='block';
-        return;
-      }
-      $('savedWrap').style.display='block';
-      $('emptyHint').style.display='none';
-      for(const row of saved){
-        const tr=document.createElement('tr');
-        const td1=document.createElement('td'); td1.textContent=row.name || '—';
-        const td2=document.createElement('td'); td2.innerHTML=`${row.sight} <span class="muted">[${milsToMMSS(row.sight)}]</span>`;
-        const td3=document.createElement('td'); td3.textContent = Number.isFinite(row.az) ? row.az.toFixed(1) : '—';
-        tr.append(td1,td2,td3); body.appendChild(tr);
-      }
-    }
-
-    function saveTarget(){
-      if(!lastCalc){ calculate(); if(!lastCalc) return; }
-      const name = $('tname').value.trim();
-      const az = lastCalc.az;
-      saved.push({name, sight:lastCalc.finalSight, az});
+    // ==== Сохранение целей (sessionStorage) ====
+    const STORE_KEY = 'savedTargets9m22';
+    let saved = [];
+    function loadSaved(){
+      try{ saved = JSON.parse(sessionStorage.getItem(STORE_KEY) || '[]'); }
+      catch{ saved = []; }
       renderSaved();
     }
+    function persist(){ sessionStorage.setItem(STORE_KEY, JSON.stringify(saved)); }
 
-    // ===== События =====
-    $('calc').addEventListener('click',calculate);
-    $('save').addEventListener('click',saveTarget);
-    $('reset').addEventListener('click',()=>{
-      ['dist','az','ht','hg','tname'].forEach(id=>$(id).value='');
-      out.innerHTML=''; lastCalc=null; // не трогаем saved
-    });
-    ;['dist','az','ht','hg'].forEach(id=>{
-      $(id).addEventListener('input',()=>{ if($('dist').value && $('ht').value && $('hg').value) calculate(); });
+    function renderSaved(){
+      const tbody = $('savedTable');
+      tbody.innerHTML = '';
+      if(!saved.length){
+        const tr = document.createElement('tr');
+        const td = document.createElement('td');
+        td.colSpan = 4; td.className = 'muted';
+        td.textContent = 'Пока пусто. Заполни поля и нажми «Сохранить цель».';
+        tr.appendChild(td); tbody.appendChild(tr); return;
+      }
+      saved.forEach((row, idx)=>{
+        const tr = document.createElement('tr');
+        const tdName = document.createElement('td');
+        tdName.textContent = row.name || `Цель ${idx+1}`;
+        const tdSight = document.createElement('td');
+        tdSight.textContent = `${row.sight} [${milsToMMSS(row.sight)}]`;
+        const tdAz = document.createElement('td');
+        tdAz.textContent = (row.azimuth ?? '') + (row.azimuth!==''?'°':'');
+        const tdAct = document.createElement('td');
+        tdAct.className = 'actions';
+
+        const btnDel = document.createElement('button');
+        btnDel.className = 'btn'; btnDel.textContent = 'Удалить';
+        btnDel.addEventListener('click', ()=>{ saved.splice(idx,1); persist(); renderSaved(); });
+
+        tdAct.appendChild(btnDel);
+        tr.append(tdName, tdSight, tdAz, tdAct);
+        tbody.appendChild(tr);
+      });
+    }
+
+    $('calc').addEventListener('click', ()=>{ try{ calculate(); }catch(e){} });
+    $('reset').addEventListener('click', ()=>{ ['dist','az','ht','hg','tgtName'].forEach(id=>$(id).value=''); out.innerHTML=''; });
+
+    $('saveTarget').addEventListener('click', ()=>{
+      try{
+        const name = $('tgtName').value.trim();
+        if(!name){ alert('Укажи название цели'); return; }
+        const az = $('az').value === '' ? '' : Number($('az').value);
+        const { finalSight } = calculate(true); // посчитать молча
+        if(!Number.isFinite(finalSight)) { alert('Сначала посчитай прицел'); return; }
+        saved.push({ name, sight: Math.round(finalSight), azimuth: az });
+        persist(); renderSaved();
+        $('tgtName').value = '';
+      } catch(e){ /* игнор */ }
     });
 
-    renderSaved();
+    $('clearAll').addEventListener('click', ()=>{ if(confirm('Очистить все сохранённые цели?')){ saved = []; persist(); renderSaved(); } });
+
+    // авторасчёт при вводе
+    ['dist','ht','hg'].forEach(id=>{ $(id).addEventListener('input', ()=>{ if($('dist').value && $('ht').value && $('hg').value) try{ calculate(); }catch(e){} }); });
+
+    // старт
+    loadSaved();
   </script>
 </body>
 </html>
