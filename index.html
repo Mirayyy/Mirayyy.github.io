@@ -3,11 +3,9 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Калькулятор угла места и корректировки прицела (тыс)</title>
+  <title>Калькулятор угла места + автоприцел (тыс)</title>
   <style>
-    :root {
-      --bg: #0b0f18; --card: #121826; --ink: #e8eefc; --muted: #9fb2d9; --accent: #7aa2ff; --line: #1f2940; --ok:#28c081; --warn:#ffb020; --err:#ff6b6b;
-    }
+    :root { --bg:#0b0f18; --card:#121826; --ink:#e8eefc; --muted:#9fb2d9; --accent:#7aa2ff; --line:#1f2940; --warn:#ffb020; --err:#ff6b6b; }
     *{box-sizing:border-box}
     body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell,"Noto Sans",sans-serif}
     .wrap{max-width:980px;margin:40px auto;padding:0 20px}
@@ -15,75 +13,67 @@
     h1{font-size:22px;margin:0 0 14px}
     p.lead{color:var(--muted);margin:0 0 18px}
     .grid{display:grid;grid-template-columns:repeat(12,1fr);gap:16px}
-    .col-6{grid-column:span 6}
-    .col-4{grid-column:span 4}
     .col-3{grid-column:span 3}
+    .col-4{grid-column:span 4}
+    .col-6{grid-column:span 6}
     .col-12{grid-column:span 12}
-    @media (max-width:800px){.col-6,.col-4,.col-3{grid-column:span 12}}
+    @media (max-width:800px){.col-3,.col-4,.col-6{grid-column:span 12}}
     label{display:block;font-size:13px;color:var(--muted);margin:6px 0}
-    input,select{width:100%;padding:12px 14px;border-radius:12px;border:1px solid var(--line);background:#0d1322;color:var(--ink)}
-    input::placeholder{color:#6f84b5}
-    .row{display:flex;gap:10px;align-items:center}
-    .btn{appearance:none;border:1px solid var(--line);background:#0d1322;color:var(--ink);padding:12px 16px;border-radius:12px;cursor:pointer}
+    input{width:100%;padding:12px 14px;border-radius:12px;border:1px solid var(--line);background:#0d1322;color:var(--ink);outline:none}
+    input:focus{border-color:#2b3b66;box-shadow:0 0 0 3px rgba(122,162,255,.15)}
+    input[readonly]{opacity:.85}
+    .row{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+    .btn{appearance:none;border:1px solid var(--line);background:#0d1322;color:var(--ink);padding:12px 16px;border-radius:12px;cursor:pointer;transition:background .2s}
     .btn.primary{background:var(--accent);border-color:transparent;color:#0b1020;font-weight:700}
-    .btn.ghost{background:transparent}
+    .btn:hover{background:#1b2236}
+    .btn.primary:hover{background:#5e8dff}
     .muted{color:var(--muted)}
     .hl{font-weight:700}
     .note{font-size:13px;color:var(--muted)}
     .result{background:#0d1322;border:1px dashed var(--line);border-radius:16px;padding:14px}
     .mono{font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace}
-    .tag{display:inline-block;padding:2px 8px;font-size:12px;border-radius:999px;border:1px solid var(--line);background:#0d1322;color:var(--muted)}
-    .ok{color:var(--ok)} .warn{color:var(--warn)} .err{color:var(--err)}
+    .warn{color:var(--warn)} .err{color:var(--err)}
     .sep{height:1px;background:var(--line);margin:16px 0}
-    .stack{display:flex;flex-direction:column;gap:8px}
-    .flex{display:flex;gap:12px;align-items:center}
-    kbd{background:#0b1222;border:1px solid var(--line);border-bottom-width:2px;border-radius:6px;padding:2px 6px;font-size:12px}
+    table{width:100%;border-collapse:separate;border-spacing:0 6px}
+    th,td{padding:10px 12px;background:#0d1322;border:1px solid var(--line)}
+    th{color:var(--muted);font-weight:600}
+    td{vertical-align:middle}
+    td .muted{font-size:12px}
   </style>
 </head>
 <body>
   <div class="wrap">
     <div class="card">
-      <h1>Калькулятор: угол места & корректировка прицела (тысячные)</h1>
-      <p class="lead">Система 6000 на круг. Угол места: <span class="mono">(Hц − Hор) / D × 1000</span>. Поддержка формата прицела <span class="mono">ММ-СС</span> (например, <span class="mono">07-50</span>) и целых тысячных (например, <span class="mono">320</span>).</p>
+      <h1>Калькулятор: угол места + автоподбор прицела (тыс)</h1>
+      <p class="lead">Система 6000-на-круг. Базовый прицел берётся <b>из таблицы 9М22</b> с <b>линейной интерполяцией</b> между ближайшими точками. Далее добавляется поправка по углу места: <span class="mono">(Hц − Hор)/D × 1000</span>.</p>
 
       <div class="grid">
-        <div class="col-4">
-          <label for="ht">Высота цели, м</label>
-          <input id="ht" type="number" step="0.01" placeholder="например, 24" value="24" />
-        </div>
-        <div class="col-4">
-          <label for="hg">Высота орудия, м</label>
-          <input id="hg" type="number" step="0.01" placeholder="например, 225" value="225" />
-        </div>
-        <div class="col-4">
+        <div class="col-3">
           <label for="dist">Дистанция до цели, м</label>
-          <input id="dist" type="number" step="0.01" placeholder="например, 1341" value="1341" />
+          <input id="dist" type="number" step="1" placeholder="например, 4851" />
         </div>
+        <div class="col-3">
+          <label for="az">Азимут, °</label>
+          <input id="az" type="number" step="0.1" placeholder="например, 179.5" />
+        </div>
+        <div class="col-3">
+          <label for="ht">Высота цели, м</label>
+          <input id="ht" type="number" step="0.01" placeholder="например, 60" />
+        </div>
+        <div class="col-3">
+          <label for="hg">Высота орудия, м</label>
+          <input id="hg" type="number" step="0.01" placeholder="например, 0" />
+        </div>
+
         <div class="col-6">
-          <label for="sight">Базовый прицел / уровень (<span class="mono">целые</span> или <span class="mono">ММ-СС</span>)</label>
-          <input id="sight" type="text" placeholder="напр. 320 или 07-50" value="320" />
-          <div class="note">Формат <span class="mono">ММ-СС</span>: М — сотни тысячных, СС — десятки+единицы (пример: <span class="mono">07-50</span> = 750).</div>
+          <label for="tname">Название цели (для сохранения)</label>
+          <input id="tname" type="text" placeholder="например, Дом у дороги" />
         </div>
-        <div class="col-3">
-          <label for="round">Округление угла места</label>
-          <select id="round">
-            <option value="10" selected>До десятков (как в примере)</option>
-            <option value="int">До целых</option>
-          </select>
-        </div>
-        <div class="col-3">
-          <label for="clamp">Настильная траектория</label>
-          <div class="row">
-            <input id="clamp" type="checkbox" checked />
-            <span class="note">Ограничить итог в пределах <span class="mono">00-00…07-50</span> (0…750)</span>
-          </div>
-        </div>
-        <div class="col-12">
-          <div class="row">
-            <button id="calc" class="btn primary">Посчитать</button>
-            <button id="reset" class="btn ghost">Сброс</button>
-            <span class="tag">Справка: 45° ≈ 07-50</span>
-          </div>
+        <div class="col-6 row" style="align-items:end;">
+          <button id="calc" class="btn primary">Посчитать</button>
+          <button id="save" class="btn">Сохранить цель</button>
+          <button id="reset" class="btn">Сброс полей</button>
+          <span class="note">Сохранённые цели живут только до перезагрузки страницы.</span>
         </div>
 
         <div class="col-12">
@@ -94,130 +84,142 @@
 
       <div class="sep"></div>
       <details>
-        <summary>Как это читается</summary>
-        <div class="stack">
-          <div>Угол места (тыс) = <span class="mono">(Hц − Hор) / D × 1000</span>. Отрицательный знак означает, что цель ниже орудия.</div>
-          <div>Коррекция прицела: <span class="mono">прицел + угол_места</span> (арифметически с его знаком). Часто пишут как <span class="mono">320 − 150 = 170</span>, что идентично <span class="mono">320 + (−150) = 170</span>.</div>
+        <summary>Что внутри (таблица и правила)</summary>
+        <div class="mono" style="font-size:13px;line-height:1.4;">
+          Таблица 9М22 (Д → П тыс):<br>
+          3000→140, 3200→150, 3400→159, 3600→169, 3800→179, 4000→190,
+          4200→200, 4400→211, 4600→221, 4800→233, 5000→244, 5200→256,
+          5400→268, 5600→280, 5800→293, 6000→306, 6200→320, 6400→334,
+          6600→349, 6800→364, 7000→380, 7200→398, 7400→416, 7600→436,
+          7800→458, 8000→482, 8200→509, 8400→543, 8600→587
         </div>
+        <p class="note">Интерполяция линейная между ближайшими 200-метровыми узлами. Вне диапазона — результат <b>экстраполируется</b> по ближайшему сегменту и помечается предупреждением.</p>
       </details>
+
+      <div class="sep"></div>
+      <h2 style="font-size:18px;margin:0 0 8px">Сохранённые цели (временно)</h2>
+      <div class="note" id="emptyHint">Пока пусто. Заполни поля, нажми «Посчитать», затем «Сохранить цель».</div>
+      <div id="savedWrap" style="display:none">
+        <table>
+          <thead>
+            <tr><th>Название</th><th>Прицел (тыс.)</th><th>Азимут</th></tr>
+          </thead>
+          <tbody id="savedBody"></tbody>
+        </table>
+      </div>
+
     </div>
   </div>
 
   <script>
-    // ---------- Утилиты форматов ----------
-    const MMSS_RE = /^\s*(\d{1,2})-(\d{2})\s*$/;
+    // ===== Таблица прицелов 9М22 =====
+    const TABLE = [
+      [3000,140],[3200,150],[3400,159],[3600,169],[3800,179],[4000,190],
+      [4200,200],[4400,211],[4600,221],[4800,233],[5000,244],[5200,256],
+      [5400,268],[5600,280],[5800,293],[6000,306],[6200,320],[6400,334],
+      [6600,349],[6800,364],[7000,380],[7200,398],[7400,416],[7600,436],
+      [7800,458],[8000,482],[8200,509],[8400,543],[8600,587]
+    ];
+    const D_MIN = TABLE[0][0];
+    const D_MAX = TABLE[TABLE.length-1][0];
 
-    function parseMils(str){
-      if (typeof str === 'number' && Number.isFinite(str)) return Math.trunc(str);
-      let s = String(str).trim();
-      let sign = 1;
-      if (s.startsWith('+') || s.startsWith('-')){ sign = s[0] === '-' ? -1 : 1; s = s.slice(1).trim(); }
-      const m = s.match(MMSS_RE);
-      if (m){
-        const mm = parseInt(m[1],10); // сотни тысячных
-        const ss = parseInt(m[2],10); // десятки+единицы
-        return sign * (mm*100 + ss);
+    function interpSight(distance){
+      if (!Number.isFinite(distance)) throw new Error('Некорректная дистанция');
+      for (const [d,p] of TABLE){ if (distance === d) return {p, warn:null}; }
+      let warn = null; let d1,p1,d2,p2;
+      if (distance < D_MIN){
+        [d1,p1] = TABLE[0]; [d2,p2] = TABLE[1]; warn = `Вне диапазона таблицы (< ${D_MIN} м): экстраполяция`;
+      } else if (distance > D_MAX){
+        [d1,p1] = TABLE[TABLE.length-2]; [d2,p2] = TABLE[TABLE.length-1]; warn = `Вне диапазона таблицы (> ${D_MAX} м): экстраполяция`;
+      } else {
+        const idx = Math.max(0, Math.min(TABLE.length-2, Math.floor((distance - D_MIN) / 200)));
+        [d1,p1] = TABLE[idx]; [d2,p2] = TABLE[idx+1];
       }
-      const n = Number(s);
-      if (!Number.isFinite(n)) throw new Error('Неверный формат прицела');
-      return sign * Math.trunc(n);
+      const k = (p2-p1)/(d2-d1);
+      const p = p1 + k*(distance-d1);
+      return {p, warn};
     }
 
-    function milsToMMSS(v){
-      const sign = v < 0 ? '-' : '';
-      const a = Math.abs(v);
-      const mm = Math.floor(a/100);
-      const ss = a % 100;
-      return `${sign}${String(mm).padStart(2,'0')}-${String(ss).padStart(2,'0')}`;
-    }
+    // ===== Геометрия (угол места) =====
+    function angleOfSiteMils(ht,hg,dist){ if (!(dist>0)) throw new Error('Дистанция должна быть > 0'); return ((ht-hg)/dist)*1000; }
+    function roundMils(v){ return Math.round(v); }
+    function milsToMMSS(v){ const sign=v<0?'-':''; const a=Math.abs(Math.trunc(v)); const mm=Math.floor(a/100); const ss=a%100; return `${sign}${String(mm).padStart(2,'0')}-${String(ss).padStart(2,'0')}`; }
 
-    // ---------- Баллистика ----------
-    function angleOfSiteMils(ht, hg, dist){
-      if (!(dist > 0)) throw new Error('Дистанция должна быть > 0');
-      return ( (ht - hg) / dist ) * 1000.0;
-    }
+    // ===== UI helpers =====
+    const $=id=>document.getElementById(id);
+    const out=$('out');
+    const fmtNum=n=>(Math.round(n*100)/100).toFixed(2).replace('.', ',');
 
-    function roundMils(v, mode){
-      if (mode === 'int') return Math.round(v);
-      if (mode === '10') return Math.round(v/10)*10;
-      throw new Error("mode должен быть 'int' или '10'");
-    }
-
-    function correctedSight(base, angle){
-      return base + angle; // angle уже со знаком
-    }
-
-    function clampFlat(mils){
-      return Math.max(0, Math.min(750, mils));
-    }
-
-    // ---------- UI ----------
-    const $ = (id)=>document.getElementById(id);
-    const out = $('out');
-
-    function fmtNum(n){
-      return (Math.round(n*100)/100).toFixed(2).replace('.', ',');
-    }
+    // ===== Расчёт =====
+    let lastCalc = null; // хранит последний расчёт для сохранения
 
     function calculate(){
       try{
-        const ht = Number($('ht').value);
-        const hg = Number($('hg').value);
-        const dist = Number($('dist').value);
-        const sightStr = $('sight').value.trim();
-        const mode = $('round').value;
-        const limited = $('clamp').checked;
+        const dist=Number($('dist').value);
+        const az=Number($('az').value);
+        const ht=Number($('ht').value);
+        const hg=Number($('hg').value);
+        if(!Number.isFinite(dist)||!Number.isFinite(ht)||!Number.isFinite(hg)) throw new Error('Проверьте числовые поля.');
+        const {p:baseSightFloat,warn}=interpSight(dist);
+        const baseSightInt=Math.round(baseSightFloat);
+        const angle=angleOfSiteMils(ht,hg,dist);
+        const angleR=roundMils(angle);
+        const finalSight=baseSightInt+angleR;
 
-        if (!Number.isFinite(ht) || !Number.isFinite(hg) || !Number.isFinite(dist))
-          throw new Error('Проверьте числовые поля.');
+        lastCalc = {dist, az, baseSightInt, baseSightFloat, angle, angleR, finalSight};
 
-        const angle = angleOfSiteMils(ht, hg, dist);
-        const angleR = roundMils(angle, mode);
-
-        let baseInfo = '<span class="muted">(без прицела)</span>';
-        let corrLine = '';
-
-        if (sightStr){
-          const base = parseMils(sightStr);
-          const correctedRaw = correctedSight(base, angleR);
-          const corrected = limited ? clampFlat(correctedRaw) : correctedRaw;
-          const mmss = milsToMMSS(corrected);
-          baseInfo = `${base} <span class="muted">[${milsToMMSS(base)}]</span>`;
-          corrLine = `\nИтоговый прицел: <span class="hl">${corrected}</span> <span class="muted">[${mmss}]</span>` +
-                     (limited && corrected!==correctedRaw ? `\n<span class="warn">Ограничено до настильного диапазона 00-00…07-50</span>` : '');
-        }
-
-        out.innerHTML = [
+        out.innerHTML=[
+          warn?`<span class="warn">${warn}</span>`:'',
+          `Базовый прицел по таблице: <span class="hl">${baseSightInt}</span> тыс <span class="muted">(интерп.: ${fmtNum(baseSightFloat)}; [${milsToMMSS(baseSightInt)}])</span>`,
           `Угол места (расчёт): <span class="hl">${fmtNum(angle)}</span> тыс`,
           `Угол места (округл.): <span class="hl">${angleR}</span> <span class="muted">[${milsToMMSS(angleR)}]</span>`,
-          `Базовый прицел: ${baseInfo}`,
-          `Корректировка: base + angle = <span class="mono">${sightStr || '—'} + (${angleR})</span>`,
-          corrLine
+          `Итоговый прицел: <span class="hl">${finalSight}</span> <span class="muted">[${milsToMMSS(finalSight)}]</span>`
         ].filter(Boolean).join('<br/>');
+      }catch(err){ out.innerHTML=`<span class="err">Ошибка: ${err.message}</span>`; lastCalc=null; }
+    }
 
-      }catch(err){
-        out.innerHTML = `<span class="err">Ошибка: ${err.message}</span>`;
+    // ===== Временное сохранение целей (в памяти) =====
+    const saved=[]; // очищается при перезагрузке страницы
+
+    function renderSaved(){
+      const body=$('savedBody');
+      body.innerHTML='';
+      if(saved.length===0){
+        $('savedWrap').style.display='none';
+        $('emptyHint').style.display='block';
+        return;
+      }
+      $('savedWrap').style.display='block';
+      $('emptyHint').style.display='none';
+      for(const row of saved){
+        const tr=document.createElement('tr');
+        const td1=document.createElement('td'); td1.textContent=row.name || '—';
+        const td2=document.createElement('td'); td2.innerHTML=`${row.sight} <span class="muted">[${milsToMMSS(row.sight)}]</span>`;
+        const td3=document.createElement('td'); td3.textContent = Number.isFinite(row.az) ? row.az.toFixed(1) : '—';
+        tr.append(td1,td2,td3); body.appendChild(tr);
       }
     }
 
-    $('calc').addEventListener('click', calculate);
-    $('reset').addEventListener('click', ()=>{
-      $('ht').value = '';
-      $('hg').value = '';
-      $('dist').value = '';
-      $('sight').value = '';
-      $('round').value = '10';
-      $('clamp').checked = true;
-      out.innerHTML = '';
+    function saveTarget(){
+      if(!lastCalc){ calculate(); if(!lastCalc) return; }
+      const name = $('tname').value.trim();
+      const az = lastCalc.az;
+      saved.push({name, sight:lastCalc.finalSight, az});
+      renderSaved();
+    }
+
+    // ===== События =====
+    $('calc').addEventListener('click',calculate);
+    $('save').addEventListener('click',saveTarget);
+    $('reset').addEventListener('click',()=>{
+      ['dist','az','ht','hg','tname'].forEach(id=>$(id).value='');
+      out.innerHTML=''; lastCalc=null; // не трогаем saved
+    });
+    ;['dist','az','ht','hg'].forEach(id=>{
+      $(id).addEventListener('input',()=>{ if($('dist').value && $('ht').value && $('hg').value) calculate(); });
     });
 
-    // авторасчёт при изменении
-    ['ht','hg','dist','sight','round','clamp'].forEach(id=>{
-      $(id).addEventListener('input', ()=>{ if ($('ht').value && $('hg').value && $('dist').value) calculate(); });
-    });
-
-    // первичный расчёт с демо-данными
-    calculate();
+    renderSaved();
   </script>
 </body>
 </html>
