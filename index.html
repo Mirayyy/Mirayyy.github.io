@@ -1,452 +1,378 @@
 <!DOCTYPE html>
 <html lang="ru">
-
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Калькулятор угла места + автоприцел (тыс)</title>
+  <title>Arma Reforger Grad Calculator — 6000 тыс.</title>
   <style>
     :root {
-      --bg: #0b0f18;
-      --card: #121826;
-      --ink: #e8eefc;
-      --muted: #9fb2d9;
-      --accent: #7aa2ff;
-      --line: #1f2940;
-      --warn: #ffb020;
-      --err: #ff6b6b;
+      --bg:#0f1216; --panel:#151923; --panel-2:#1a2030;
+      --text:#e7eef6; --muted:#a9b3c1; --border:#2b3548;
+      --accent:#7dc4ff; --accent-2:#a8ffbf; --warn:#ffcc7b; --err:#ff8b8b;
     }
-
-    * {
-      box-sizing: border-box
+    *{box-sizing:border-box}
+    body{ margin:0; padding:24px; font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell,'Helvetica Neue',Helvetica,Arial;
+          background: radial-gradient(1200px 700px at 10% -10%, #1b2032 0%, #0e1218 60%, #0c0f12 100%);
+          color:var(--text); }
+    h1{ margin:0 0 6px; font-weight:800; letter-spacing:.3px; }
+    .sub{ color:var(--muted); margin-bottom:20px; }
+    .card{ background: linear-gradient(180deg, var(--panel) 0%, var(--panel-2) 100%);
+           border:1px solid var(--border); border-radius:16px; padding:16px; }
+    .card h2{ margin:0 0 12px; font-size:18px; letter-spacing:.2px; color:var(--accent); }
+    h3{ margin:0 0 8px; font-size:14px; color:var(--muted); }
+    label{ display:block; font-size:13px; color:var(--muted); margin:8px 0 6px; }
+    input,select,button{ width:100%; padding:10px 12px; border-radius:12px; border:1px solid var(--border);
+                         background:#0e131b; color:var(--text); }
+    input::placeholder{ color:#7b8798; }
+    button{ cursor:pointer; font-weight:700; letter-spacing:.2px; transition:filter .2s ease, transform .05s ease; }
+    button:hover{ filter:brightness(1.07); } button:active{ transform:translateY(1px); }
+    .btn-row{ display:flex; gap:10px; flex-wrap:wrap; }
+    .btn-primary{ background:linear-gradient(180deg,#147eff,#0e5ad9); border:none; }
+    .btn-save{ background:linear-gradient(180deg,#17b26b,#0e8d53); border:none; }
+    .btn-reset{ background:linear-gradient(180deg,#40506a,#2a3447); border:none; }
+    .note{ font-size:12px; color:var(--muted); }
+    .divider{ height:1px; background:linear-gradient(90deg, transparent, var(--border), transparent); margin:12px 0; }
+    .inputs{ display:grid; grid-template-columns:1fr; gap:14px; }
+    @media (min-width: 960px){
+      .inputs{ grid-template-columns: 1fr 1fr; }
+      .cat1{ grid-column: 1; grid-row: 1; }
+      .cat2{ grid-column: 2; grid-row: 1 / span 2; }
+      .cat3{ grid-column: 1; grid-row: 2; }
     }
-
-    body {
-      margin: 0;
-      background: var(--bg);
-      color: var(--ink);
-      font: 16px/1.5 system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, "Noto Sans", sans-serif
-    }
-
-    .wrap {
-      max-width: 960px;
-      margin: 40px auto;
-      padding: 0 20px
-    }
-
-    .card {
-      background: var(--card);
-      border: 1px solid var(--line);
-      border-radius: 20px;
-      box-shadow: 0 10px 30px rgba(0, 0, 0, .25);
-      padding: 24px
-    }
-
-    h1 {
-      font-size: 22px;
-      margin: 0 0 14px
-    }
-
-    p.lead {
-      color: var(--muted);
-      margin: 0 0 18px
-    }
-
-    .grid {
-      display: grid;
-      grid-template-columns: repeat(12, 1fr);
-      gap: 16px
-    }
-
-    .col-3 {
-      grid-column: span 3
-    }
-
-    .col-4 {
-      grid-column: span 4
-    }
-
-    .col-6 {
-      grid-column: span 6
-    }
-
-    .col-8 {
-      grid-column: span 8
-    }
-
-    .col-12 {
-      grid-column: span 12
-    }
-
-    @media (max-width:900px) {
-
-      .col-6,
-      .col-8,
-      .col-4,
-      .col-3 {
-        grid-column: span 12
-      }
-    }
-
-    label {
-      display: block;
-      font-size: 13px;
-      color: var(--muted);
-      margin: 6px 0
-    }
-
-    input {
-      width: 100%;
-      padding: 12px 14px;
-      border-radius: 12px;
-      border: 1px solid var(--line);
-      background: #0d1322;
-      color: var(--ink);
-      outline: none
-    }
-
-    input[readonly] {
-      opacity: .85
-    }
-
-    input:focus {
-      border-color: #2b3b66;
-      box-shadow: 0 0 0 3px rgba(122, 162, 255, .15)
-    }
-
-    .row {
-      display: flex;
-      gap: 12px;
-      align-items: center;
-      flex-wrap: wrap
-    }
-
-    .btn {
-      appearance: none;
-      border: 1px solid var(--line);
-      background: #0d1322;
-      color: var(--ink);
-      padding: 12px 16px;
-      border-radius: 12px;
-      cursor: pointer;
-      transition: background .2s
-    }
-
-    .btn.primary {
-      background: var(--accent);
-      border-color: transparent;
-      color: #0b1020;
-      font-weight: 700
-    }
-
-    .btn:hover {
-      background: #1b2236
-    }
-
-    .btn.primary:hover {
-      background: #5e8dff
-    }
-
-    .muted {
-      color: var(--muted)
-    }
-
-    .hl {
-      font-weight: 700
-    }
-
-    .note {
-      font-size: 13px;
-      color: var(--muted)
-    }
-
-    .result {
-      background: #0d1322;
-      border: 1px dashed var(--line);
-      border-radius: 16px;
-      padding: 14px
-    }
-
-    .mono {
-      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace
-    }
-
-    .warn {
-      color: var(--warn)
-    }
-
-    .err {
-      color: var(--err)
-    }
-
-    .sep {
-      height: 1px;
-      background: var(--line);
-      margin: 16px 0
-    }
-
-    details summary {
-      cursor: pointer;
-      color: var(--accent);
-      font-weight: 600
-    }
-
-    details[open] summary {
-      margin-bottom: 8px
-    }
-
-    table {
-      width: 100%;
-      border-collapse: separate;
-      border-spacing: 0 8px
-    }
-
-    th,
-    td {
-      padding: 10px 12px;
-      border: 1px solid var(--line);
-      background: #0d1322
-    }
-
-    th {
-      background: #0f1628;
-      color: var(--muted);
-      font-weight: 600;
-      text-align: left
-    }
-
-    td:first-child,
-    th:first-child {
-      border-top-left-radius: 10px;
-      border-bottom-left-radius: 10px
-    }
-
-    td:last-child,
-    th:last-child {
-      border-top-right-radius: 10px;
-      border-bottom-right-radius: 10px
-    }
-
-    .actions {
-      display: flex;
-      gap: 8px
-    }
+    table{ width:100%; border-collapse:collapse; }
+    th,td{ border-bottom:1px solid var(--border); padding:8px; text-align:left; font-size:14px; }
+    th{ color:var(--muted); }
+    .result{ font-size:24px; font-weight:800; }
+    .num{ color:var(--accent-2); font-weight:800; }
+    .msg{ margin-top:8px; font-size:13px; padding:8px 10px; border-radius:10px; border:1px solid var(--border); background:#0d131c; }
+    .msg.ok{ border-color:rgba(168,255,191,.35); color:#b6ffd0; }
+    .msg.warn{ border-color:rgba(255,204,123,.35); color:var(--warn); }
+    .msg.err{ border-color:rgba(255,139,139,.35); color:var(--err); }
   </style>
 </head>
-
 <body>
-  <div class="wrap">
-    <div class="card">
-      <h1>Калькулятор: угол места + автоподбор прицела (тыс)</h1>
-      <p class="lead">Система 6000-на-круг. Базовый прицел берётся <b>из таблицы 9М22</b> с <b>линейной
-          интерполяцией</b> между ближайшими точками. Далее добавляется поправка по углу места: <span class="mono">(Hц −
-          Hор)/D × 1000</span>. Можно сохранять временные цели.</p>
+  <header>
+    <h1>Arma Reforger Grad Calculator</h1>
+    <div class="sub">Автор: <strong>Miray</strong>, Discord: <strong>miray</strong> — система углов: <strong style="color:var(--accent)">6000 тыс.</strong></div>
+  </header>
 
-      <div class="grid">
-        <div class="col-3">
-          <label for="dist">Дистанция, м</label>
-          <input id="dist" type="number" step="1" placeholder="например, 4851" />
-        </div>
-        <div class="col-3">
-          <label for="az">Азимут, °</label>
-          <input id="az" type="number" step="0.1" placeholder="например, 175.7" />
-        </div>
-        <div class="col-3">
-          <label for="ht">Высота цели, м</label>
-          <input id="ht" type="number" step="0.01" placeholder="например, 60" />
-        </div>
-        <div class="col-3">
-          <label for="hg">Высота орудия, м</label>
-          <input id="hg" type="number" step="0.01" placeholder="например, 0" />
-        </div>
-
-        <div class="col-6">
-          <label for="tgtName">Название цели</label>
-          <input id="tgtName" type="text" placeholder="например, Дом у перекрёстка" />
-        </div>
-        <div class="col-6 row" style="align-items:flex-end;">
-          <button id="calc" class="btn primary">Посчитать</button>
-          <button id="saveTarget" class="btn">Сохранить цель</button>
-          <button id="reset" class="btn">Сброс</button>
-        </div>
-
-        <div class="col-12">
-          <div class="sep"></div>
-          <div id="out" class="result mono"></div>
-        </div>
-
-        <div class="col-12">
-          <div class="sep"></div>
-          <h2 style="font-size:18px;margin:0 0 8px;">Сохранённые цели (временно)</h2>
-          <div class="note" style="margin-bottom:8px;">Хранятся локально в этом браузере (localStorage) и сохраняются
-            после обновления страницы. Удаляются при очистке данных сайта.</div>
-          <table>
-            <thead>
-              <tr>
-                <th>Название</th>
-                <th>Прицел (тыс)</th>
-                <th>Азимут (°)</th>
-                <th class="muted">Действия</th>
-              </tr>
-            </thead>
-            <tbody id="savedTable">
-              <tr>
-                <td colspan="4" class="muted">Пока пусто. Заполни поля и нажми «Сохранить цель».</td>
-              </tr>
-            </tbody>
-          </table>
-          <div class="row" style="justify-content:flex-end;margin-top:8px;">
-            <button id="clearAll" class="btn">Очистить все</button>
-          </div>
-        </div>
-      </div>
-
-      <div class="sep"></div>
-      <details>
-        <summary>Что внутри (таблица и правила)</summary>
-        <div class="mono" style="font-size:13px;line-height:1.4;">
-          Таблица 9М22 (Д → П тыс):<br>
-          3000→140, 3200→150, 3400→159, 3600→169, 3800→179, 4000→190,<br>
-          4200→200, 4400→211, 4600→221, 4800→233, 5000→244, 5200→256,<br>
-          5400→268, 5600→280, 5800→293, 6000→306, 6200→320, 6400→334,<br>
-          6600→349, 6800→364, 7000→380, 7200→398, 7400→416, 7600→436,<br>
-          7800→458, 8000→482, 8200→509, 8400→543, 8600→587
-        </div>
-        <p class="note">Интерполяция линейная между ближайшими 200‑метровыми узлами. Вне диапазона — результат
-          <b>экстраполируется</b> по ближайшему сегменту и помечается предупреждением.</p>
-      </details>
+  <!-- ВВОД ДАННЫХ: 1 2 / 3 2 -->
+  <section class="inputs" aria-label="Ввод данных">
+    <!-- Кат.1 -->
+    <div class="card cat1">
+      <h2>Категория 1 — Орудие</h2>
+      <label for="proj">Выбор снаряда</label>
+      <select id="proj">
+        <option value="9m22_of">9М22 122мм ОФ</option>
+        <option value="9m22_smoke">9М22 122мм Дымовой</option>
+      </select>
+      <label for="gun_x">Широта (X)</label>
+      <input id="gun_x" type="number" placeholder="Напр.: 0003769" />
+      <label for="gun_y">Долгота (Y)</label>
+      <input id="gun_y" type="number" placeholder="Напр.: 0004596" />
+      <label for="gun_alt">Высота орудия (м)</label>
+      <input id="gun_alt" type="number" step="0.1" placeholder="м" />
     </div>
-  </div>
 
-  <script>
-    // ==== Таблица 9М22: Дистанция (м) → Прицел (тыс) ====
-    const TABLE = [
-      [3000, 140], [3200, 150], [3400, 159], [3600, 169], [3800, 179], [4000, 190],
-      [4200, 200], [4400, 211], [4600, 221], [4800, 233], [5000, 244], [5200, 256],
-      [5400, 268], [5600, 280], [5800, 293], [6000, 306], [6200, 320], [6400, 334],
-      [6600, 349], [6800, 364], [7000, 380], [7200, 398], [7400, 416], [7600, 436],
-      [7800, 458], [8000, 482], [8200, 509], [8400, 543], [8600, 587]
-    ];
-    const D_MIN = TABLE[0][0];
-    const D_MAX = TABLE[TABLE.length - 1][0];
+    <!-- Кат.2: целиком в правой колонке -->
+    <div class="card cat2">
+      <h2>Категория 2 — Цель</h2>
+      <div class="note">Заполни <b>координаты</b> или <b>дистанцию/азимут</b>. Если оба — используются координаты (точнее).</div>
 
-    function interpSight(distance) {
-      if (!Number.isFinite(distance)) throw new Error('Некорректная дистанция');
-      for (const [d, p] of TABLE) { if (distance === d) return { p, warn: null }; }
-      let warn = null; let d1, p1, d2, p2;
-      if (distance < D_MIN) {
-        [d1, p1] = TABLE[0];[d2, p2] = TABLE[1]; warn = `Вне диапазона таблицы (< ${D_MIN} м): экстраполяция`;
-      } else if (distance > D_MAX) {
-        [d1, p1] = TABLE[TABLE.length - 2];[d2, p2] = TABLE[TABLE.length - 1]; warn = `Вне диапазона таблицы (> ${D_MAX} м): экстраполяция`;
-      } else {
-        const idx = Math.max(0, Math.min(TABLE.length - 2, Math.floor((distance - D_MIN) / 200)));
-        [d1, p1] = TABLE[idx];[d2, p2] = TABLE[idx + 1];
-      }
-      const k = (p2 - p1) / (d2 - d1);
-      const p = p1 + k * (distance - d1);
-      return { p, warn };
+      <div class="divider"></div>
+      <h3>Вариант 1 — Координаты</h3>
+      <label for="tgt_x">Широта (X)</label>
+      <input id="tgt_x" type="number" placeholder="Напр.: 0004000" />
+      <label for="tgt_y">Долгота (Y)</label>
+      <input id="tgt_y" type="number" placeholder="Напр.: 0004700" />
+      <label for="tgt_alt">Высота цели (м)</label>
+      <input id="tgt_alt" type="number" step="0.1" placeholder="м" />
+
+      <div class="divider"></div>
+      <h3>Вариант 2 — Дистанция / Азимут</h3>
+      <label for="dist_m">Дистанция (м)</label>
+      <input id="dist_m" type="number" step="1" placeholder="м" />
+      <label for="az_deg">Азимут (градусы)</label>
+      <input id="az_deg" type="number" step="0.01" placeholder="0–360" />
+      <label for="az_mil">Азимут (тыс.)</label>
+      <input id="az_mil" type="number" step="0.1" placeholder="0–6000" />
+      <p class="note" style="margin-top:6px">Если введены и градусы, и тысячные — используется тысячный ввод. 1 круг = 6000 тыс.</p>
+    </div>
+
+    <!-- Кат.3: под Кат.1 -->
+    <div class="card cat3">
+      <h2>Категория 3 — Название и действия</h2>
+      <label for="name">Название цели</label>
+      <input id="name" placeholder="Например: OP HILL-2" />
+      <div class="btn-row" style="margin-top:8px">
+        <button id="btn_calc" class="btn-primary">Посчитать</button>
+        <button id="btn_save" class="btn-save">Сохранить</button>
+        <button id="btn_reset" class="btn-reset">Сброс</button>
+      </div>
+      <div id="msg" class="msg"></div>
+    </div>
+  </section>
+
+  <!-- Результаты -->
+  <section class="card" style="margin-top:16px">
+    <h2>Результаты</h2>
+    <div class="divider"></div>
+    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:14px;">
+      <div>
+        <details>
+          <summary>Показать подробности (доп. расчёты)</summary>
+          <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px; margin-top:10px;">
+            <div><div class="note">Дальность (м)</div><div id="res_range">—</div></div>
+            <div><div class="note">Базовый прицел (тыс.)</div><div id="res_base">—</div></div>
+            <div><div class="note">Угол места (расчёт/округл.)</div><div><span id="res_slope">—</span> / <span id="res_slope_round">—</span></div></div>
+            <div><div class="note">Азимут (° / тыс.)</div><div><span id="res_az_deg">—</span>° / <span id="res_az_mil">—</span></div></div>
+          </div>
+        </details>
+      </div>
+      <div>
+        <div class="result">Азимут на цель: <span id="main_az" class="num">—</span> тыс.</div>
+        <div class="result">Итоговый прицел: <span id="main_sight" class="num">—</span> тыс.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Сохранённые цели -->
+  <section class="card" style="margin-top:14px">
+    <h2>Сохранённые цели</h2>
+    <table id="saved_table">
+      <thead>
+        <tr>
+          <th>Название</th>
+          <th>Прицел (тыс.)</th>
+          <th>Азимут (тыс.)</th>
+          <th>Действия</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </section>
+
+  <!-- Справка и таблицы -->
+  <section class="card" style="margin-top:14px">
+    <h2>Справка и таблицы</h2>
+    <details open>
+      <summary>Таблица — 9М22 122мм ОФ (дистанция → базовый прицел, тыс.)</summary>
+      <div style="overflow:auto; margin-top: 8px;">
+        <table>
+          <thead><tr><th>Дист. (м)</th><th>Прицел (тыс.)</th></tr></thead>
+          <tbody id="table_9m22_of"></tbody>
+        </table>
+      </div>
+      <p class="note">Интерполяция — линейная. При выходе за диапазон — будет предупреждение.</p>
+    </details>
+    <details open>
+      <summary>Таблица — 9М22 122мм Дымовой (дистанция → базовый прицел, тыс.)</summary>
+      <div style="overflow:auto; margin-top: 8px;">
+        <table>
+          <thead><tr><th>Дист. (м)</th><th>Прицел (тыс.)</th></tr></thead>
+          <tbody id="table_9m22_smoke"></tbody>
+        </table>
+      </div>
+      <p class="note">Диапазон: 2200–6000 м.</p>
+    </details>
+    <details>
+      <summary>Формулы</summary>
+      <ul class="note">
+        <li>Угол места (тыс.) = (Hцели − Hорудия) / Дистанция × 1000</li>
+        <li>Азимут (тыс.) = Азимут(°) × 6000 / 360 = Азимут(°) × 16.666…</li>
+        <li>1 круг = 6000 тыс.</li>
+        <li>Координаты X/Y — игровые: дистанция = √(ΔX²+ΔY²), азимут = atan2(ΔX,ΔY).</li>
+      </ul>
+    </details>
+  </section>
+
+<script>
+(function(){
+  // ====== ДАННЫЕ СНАРЯДОВ ======
+  const PROJECTILES = {
+    '9m22_of': { name:'9М22 122мм ОФ', table:[[3000,140],[3200,150],[3400,159],[3600,169],[3800,179],[4000,190],[4200,200],[4400,211],[4600,221],[4800,233],[5000,244],[5200,256],[5400,268],[5600,280],[5800,293],[6000,306],[6200,320],[6400,334],[6600,349],[6800,364],[7000,380],[7200,398],[7400,416],[7600,436],[7800,458],[8000,482],[8200,509],[8400,543],[8600,587]] },
+    '9m22_smoke': { name:'9М22 122мм Дымовой', table:[[2200,151],[2400,165],[2600,179],[2800,194],[3000,210],[3200,225],[3400,242],[3600,258],[3800,276],[4000,294],[4200,313],[4400,333],[4600,354],[4800,376],[5000,400],[5200,427],[5400,456],[5600,489],[5800,529],[6000,584]] }
+  };
+
+  // Рендер таблиц справки
+  const tbOF = document.getElementById('table_9m22_of');
+  PROJECTILES['9m22_of'].table.forEach(([d,m])=>{
+    const tr = document.createElement('tr');
+    tr.innerHTML = '<td>'+d+'</td><td>'+m+'</td>';
+    tbOF.appendChild(tr);
+  });
+  const tbSM = document.getElementById('table_9m22_smoke');
+  PROJECTILES['9m22_smoke'].table.forEach(([d,m])=>{
+    const tr = document.createElement('tr');
+    tr.innerHTML = '<td>'+d+'</td><td>'+m+'</td>';
+    tbSM.appendChild(tr);
+  });
+
+  // ====== Утилиты ======
+  const MILS = 6000;
+  const clampCircle = (m)=>{ let r = m % MILS; if (r < 0) r += MILS; return r; };
+  const deg2mil = (deg)=> deg * (MILS/360);
+  const mil2deg = (mil)=> mil * (360/MILS);
+  const fmt = (x,d=0)=> isNaN(x)? '—' : (Math.round(x*10**d)/10**d).toLocaleString('ru-RU');
+
+  function setMsg(text, type='ok'){
+    const box = document.getElementById('msg');
+    box.textContent = text;
+    box.className = 'msg ' + (type==='warn' ? 'warn' : type==='err' ? 'err' : 'ok');
+  }
+
+  // ====== UI ======
+  const $ = (id)=> document.getElementById(id);
+  const ui = {
+    proj: $('proj'),
+    gun_x: $('gun_x'), gun_y: $('gun_y'), gun_alt: $('gun_alt'),
+    tgt_x: $('tgt_x'), tgt_y: $('tgt_y'), tgt_alt: $('tgt_alt'),
+    dist_m: $('dist_m'), az_deg: $('az_deg'), az_mil: $('az_mil'),
+    btn_calc: $('btn_calc'), btn_save: $('btn_save'), btn_reset: $('btn_reset'),
+    name: $('name'),
+    res_range: $('res_range'), res_base: $('res_base'), res_slope: $('res_slope'), res_slope_round: $('res_slope_round'),
+    res_az_deg: $('res_az_deg'), res_az_mil: $('res_az_mil'),
+    main_az: $('main_az'), main_sight: $('main_sight'),
+    saved_body: $('saved_table').querySelector('tbody')
+  };
+
+  // ====== Интерполяция прицела ======
+  function interpolateSight(table, dist){
+    if (!table || !table.length || isNaN(dist) || dist<=0) return {value: NaN, note:'нет таблицы/дистанции'};
+    const minD = table[0][0], maxD = table[table.length-1][0];
+    if (dist < minD || dist > maxD){
+      const edge = (dist < minD) ? [table[0], table[1]] : [table[table.length-2], table[table.length-1]];
+      const [d1,m1] = edge[0], [d2,m2] = edge[1];
+      const m = m1 + (m2-m1)*((dist-d1)/(d2-d1));
+      return {value: m, note: 'вне диапазона ('+minD+'–'+maxD+')'};
     }
-
-    function angleOfSiteMils(ht, hg, dist) { if (!(dist > 0)) throw new Error('Дистанция должна быть > 0'); return ((ht - hg) / dist) * 1000; }
-    function roundMils(v) { return Math.round(v); }
-    function milsToMMSS(v) { const sign = v < 0 ? '-' : ''; const a = Math.abs(Math.trunc(v)); const mm = Math.floor(a / 100); const ss = a % 100; return `${sign}${String(mm).padStart(2, '0')}-${String(ss).padStart(2, '0')}`; }
-
-    const $ = id => document.getElementById(id);
-    const out = $('out');
-    const fmtNum = n => (Math.round(n * 100) / 100).toFixed(2).replace('.', ',');
-
-    // ==== Расчёт ====
-    function calculate(returnAll = false) {
-      const dist = Number($('dist').value);
-      const ht = Number($('ht').value);
-      const hg = Number($('hg').value);
-      if (!Number.isFinite(dist) || !Number.isFinite(ht) || !Number.isFinite(hg)) {
-        if (!returnAll) out.innerHTML = '<span class="err">Проверьте числовые поля.</span>';
-        throw new Error('bad-input');
+    for (let i=0;i<table.length-1;i++){
+      const [d1,m1] = table[i], [d2,m2] = table[i+1];
+      if (dist === d1) return {value:m1, note:'точное совпадение'};
+      if (dist > d1 && dist < d2){
+        const m = m1 + (m2-m1)*((dist-d1)/(d2-d1));
+        return {value:m, note:d1+'–'+d2+' интерп.'};
       }
-      const { p: baseSightFloat, warn } = interpSight(dist);
-      const baseSightInt = Math.round(baseSightFloat);
-      const angle = angleOfSiteMils(ht, hg, dist);
-      const angleR = roundMils(angle);
-      const finalSight = baseSightInt + angleR;
-
-      if (!returnAll) {
-        out.innerHTML = [
-          warn ? `<span class="warn">${warn}</span>` : '',
-          `Базовый прицел по таблице: <span class="hl">${baseSightInt}</span> тыс <span class="muted">(интерп.: ${fmtNum(baseSightFloat)}; [${milsToMMSS(baseSightInt)}])</span>`,
-          `Угол места (расчёт): <span class="hl">${fmtNum(angle)}</span> тыс`,
-          `Угол места (округл.): <span class="hl">${angleR}</span> <span class="muted">[${milsToMMSS(angleR)}]</span>`,
-          `Итоговый прицел: <span class="hl">${finalSight}</span> <span class="muted">[${milsToMMSS(finalSight)}]</span>`
-        ].filter(Boolean).join('<br/>');
-      }
-      return { baseSightInt, baseSightFloat, angle, angleR, finalSight };
+      if (dist === d2) return {value:m2, note:'точное совпадение'};
     }
+    return {value: table[table.length-1][1], note:'верхняя граница'};
+  }
 
-    // ==== Сохранение целей (sessionStorage) ====
-    const STORE_KEY = 'savedTargets9m22';
-    let saved = [];
-    function loadSaved() {
-      try { saved = JSON.parse(sessionStorage.getItem(STORE_KEY) || '[]'); }
-      catch { saved = []; }
-      renderSaved();
+  // ====== Выбор варианта ======
+  function chooseVariant(){
+    const hasCoords = [ui.gun_x.value, ui.gun_y.value, ui.tgt_x.value, ui.tgt_y.value, ui.gun_alt.value, ui.tgt_alt.value]
+      .every(v=> v!=='' && !Number.isNaN(Number(v)));
+    if (hasCoords){
+      const gunX = parseFloat(ui.gun_x.value), gunY = parseFloat(ui.gun_y.value);
+      const tgtX = parseFloat(ui.tgt_x.value), tgtY = parseFloat(ui.tgt_y.value);
+      const gunAlt = parseFloat(ui.gun_alt.value), tgtAlt = parseFloat(ui.tgt_alt.value);
+      const dx = tgtX - gunX, dy = tgtY - gunY;
+      const dist = Math.hypot(dx, dy);
+      const azDeg = (Math.atan2(dx, dy)*180/Math.PI + 360) % 360; // 0° = север
+      const azMil = deg2mil(azDeg);
+      const slope = ((tgtAlt - gunAlt)/dist) * 1000;
+      return {kind:'coords', dist, azDeg, azMil, slope, projectile: ui.proj.value};
     }
-    function persist() { sessionStorage.setItem(STORE_KEY, JSON.stringify(saved)); }
-
-    function renderSaved() {
-      const tbody = $('savedTable');
-      tbody.innerHTML = '';
-      if (!saved.length) {
-        const tr = document.createElement('tr');
-        const td = document.createElement('td');
-        td.colSpan = 4; td.className = 'muted';
-        td.textContent = 'Пока пусто. Заполни поля и нажми «Сохранить цель».';
-        tr.appendChild(td); tbody.appendChild(tr); return;
-      }
-      saved.forEach((row, idx) => {
-        const tr = document.createElement('tr');
-        const tdName = document.createElement('td');
-        tdName.textContent = row.name || `Цель ${idx + 1}`;
-        const tdSight = document.createElement('td');
-        tdSight.textContent = `${row.sight} [${milsToMMSS(row.sight)}]`;
-        const tdAz = document.createElement('td');
-        tdAz.textContent = (row.azimuth ?? '') + (row.azimuth !== '' ? '°' : '');
-        const tdAct = document.createElement('td');
-        tdAct.className = 'actions';
-
-        const btnDel = document.createElement('button');
-        btnDel.className = 'btn'; btnDel.textContent = 'Удалить';
-        btnDel.addEventListener('click', () => { saved.splice(idx, 1); persist(); renderSaved(); });
-
-        tdAct.appendChild(btnDel);
-        tr.append(tdName, tdSight, tdAz, tdAct);
-        tbody.appendChild(tr);
-      });
+    const hasDist = ui.dist_m.value!=='' && !Number.isNaN(Number(ui.dist_m.value));
+    const hasDeg = ui.az_deg.value!=='' && !Number.isNaN(Number(ui.az_deg.value));
+    const hasMil = ui.az_mil.value!=='' && !Number.isNaN(Number(ui.az_mil.value));
+    const hasHeights = ui.gun_alt.value!=='' && ui.tgt_alt.value!=='' && !Number.isNaN(Number(ui.gun_alt.value)) && !Number.isNaN(Number(ui.tgt_alt.value));
+    if (hasDist && (hasDeg || hasMil) && hasHeights){
+      const dist = parseFloat(ui.dist_m.value);
+      let azMil, azDeg;
+      if (hasMil){ azMil = parseFloat(ui.az_mil.value); azDeg = mil2deg(azMil); }
+      else { azDeg = parseFloat(ui.az_deg.value); azMil = deg2mil(azDeg); }
+      const slope = ((parseFloat(ui.tgt_alt.value) - parseFloat(ui.gun_alt.value))/dist) * 1000;
+      return {kind:'distAz', dist, azDeg, azMil, slope, projectile: ui.proj.value};
     }
+    return {kind:'none'};
+  }
 
-    $('calc').addEventListener('click', () => { try { calculate(); } catch (e) { } });
-    $('reset').addEventListener('click', () => { ['dist', 'az', 'ht', 'hg', 'tgtName'].forEach(id => $(id).value = ''); out.innerHTML = ''; });
+  // ====== Расчёт ======
+  function calculate(){
+    const v = chooseVariant();
+    if (v.kind === 'none'){ setMsg('Заполните координаты ИЛИ дистанцию + азимут + высоты.', 'warn'); return null; }
+    const proj = PROJECTILES[v.projectile];
+    const interp = interpolateSight(proj.table, v.dist);
+    if (isNaN(interp.value)){ setMsg('Для выбранного снаряда нет таблицы прицелов или некорректная дистанция.', 'err'); return null; }
 
-    $('saveTarget').addEventListener('click', () => {
-      try {
-        const name = $('tgtName').value.trim();
-        if (!name) { alert('Укажи название цели'); return; }
-        const az = $('az').value === '' ? '' : Number($('az').value);
-        const { finalSight } = calculate(true); // посчитать молча
-        if (!Number.isFinite(finalSight)) { alert('Сначала посчитай прицел'); return; }
-        saved.push({ name, sight: Math.round(finalSight), azimuth: az });
-        persist(); renderSaved();
-        $('tgtName').value = '';
-      } catch (e) { /* игнор */ }
+    const finalSight = interp.value + v.slope;
+
+    // вывод
+    ui.res_range.textContent = fmt(v.dist,0);
+    ui.res_base.textContent = fmt(interp.value,1) + (interp.note? ' · '+interp.note : '');
+    ui.res_slope.textContent = fmt(v.slope,2);
+    ui.res_slope_round.textContent = fmt(Math.round(v.slope),0);
+    ui.res_az_deg.textContent = fmt(v.azDeg,2);
+    ui.res_az_mil.textContent = fmt(clampCircle(v.azMil),1);
+    ui.main_az.textContent = fmt(clampCircle(v.azMil),1);
+    ui.main_sight.textContent = fmt(finalSight,1);
+
+    if (interp.note && /вне диапазона/i.test(interp.note)) setMsg('Внимание: дистанция вне диапазона таблицы — выполнена экстраполяция.', 'warn');
+    else setMsg('Готово. Расчёт выполнен.', 'ok');
+
+    return {
+      name: (document.getElementById('name').value || '').trim(),
+      projectileKey: v.projectile,
+      dist: v.dist,
+      azMil: clampCircle(v.azMil),
+      finalSight: finalSight,
+      inputs: collectInputs()
+    };
+  }
+
+  // ====== Сохранение ======
+  const KEY='arf_grad_saved_v1_grid_m6000';
+  function collectInputs(){
+    const ids=['proj','gun_x','gun_y','gun_alt','tgt_x','tgt_y','tgt_alt','dist_m','az_deg','az_mil','name'];
+    const o={}; ids.forEach(id=> o[id] = document.getElementById(id)?.value ?? ''); return o;
+  }
+  function loadSaved(){ try{ return JSON.parse(sessionStorage.getItem(KEY) || '[]'); }catch{ return []; } }
+  function saveSaved(arr){ sessionStorage.setItem(KEY, JSON.stringify(arr)); }
+  function renderSaved(){
+    const data = loadSaved();
+    ui.saved_body.innerHTML = '';
+    if (!data.length){ ui.saved_body.innerHTML = '<tr><td colspan="4" class="note">Пока пусто.</td></tr>'; return; }
+    data.forEach((item,idx)=>{
+      const tr = document.createElement('tr');
+      tr.innerHTML =
+        '<td>'+(item.name || '(без названия)')+'</td>'+
+        '<td>'+fmt(item.finalSight,1)+'</td>'+
+        '<td>'+fmt(item.azMil,1)+'</td>'+
+        '<td>'+
+          '<button data-act="fill" data-idx="'+idx+'">Заполнить</button> '+
+          '<button data-act="rename" data-idx="'+idx+'">Переименовать</button> '+
+          '<button data-act="del" data-idx="'+idx+'">Удалить</button>'+
+        '</td>';
+      ui.saved_body.appendChild(tr);
     });
+  }
 
-    $('clearAll').addEventListener('click', () => { if (confirm('Очистить все сохранённые цели?')) { saved = []; persist(); renderSaved(); } });
+  document.getElementById('saved_table').addEventListener('click', (e)=>{
+    const btn = e.target.closest('button'); if (!btn) return;
+    const idx = Number(btn.dataset.idx); const act = btn.dataset.act;
+    const arr = loadSaved(); if (!Number.isInteger(idx) || idx<0 || idx>=arr.length) return;
+    if (act==='del'){ arr.splice(idx,1); saveSaved(arr); renderSaved(); setMsg('Удалено.', 'ok'); }
+    if (act==='fill'){ const rec=arr[idx]; if (rec && rec.inputs) { Object.entries(rec.inputs).forEach(([k,v])=>{ const el=document.getElementById(k); if(el) el.value=v; }); setMsg('Поля заполнены. Нажмите «Посчитать».','ok'); } }
+    if (act==='rename'){ const nn = prompt('Новое имя цели:', arr[idx].name||''); if (nn!==null){ arr[idx].name = nn.trim(); saveSaved(arr); renderSaved(); setMsg('Переименовано.','ok'); } }
+  });
 
-    // авторасчёт при вводе
-    ['dist', 'ht', 'hg'].forEach(id => { $(id).addEventListener('input', () => { if ($('dist').value && $('ht').value && $('hg').value) try { calculate(); } catch (e) { } }); });
+  // Кнопки
+  document.getElementById('btn_calc').addEventListener('click', ()=>{ calculate(); });
+  document.getElementById('btn_save').addEventListener('click', ()=>{
+    const r = calculate(); if (!r) return;
+    const arr = loadSaved(); arr.unshift(r); saveSaved(arr); renderSaved(); setMsg('Сохранено.', 'ok');
+  });
+  document.getElementById('btn_reset').addEventListener('click', ()=>{
+    ['gun_x','gun_y','gun_alt','tgt_x','tgt_y','tgt_alt','dist_m','az_deg','az_mil','name'].forEach(id=>{ const el=document.getElementById(id); if(el) el.value=''; });
+    ['res_range','res_base','res_slope','res_slope_round','res_az_deg','res_az_mil','main_az','main_sight'].forEach(id=>{ const el=document.getElementById(id); if(el) el.textContent='—'; });
+    setMsg('Сброшено.', 'ok');
+  });
 
-    // старт
-    loadSaved();
-  </script>
+  // Инициализация
+  renderSaved();
+  setMsg('Готов.', 'ok');
+})();
+</script>
 </body>
-
 </html>
