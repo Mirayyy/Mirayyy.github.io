@@ -1,339 +1,63 @@
 <!DOCTYPE html>
 <html lang="ru">
-
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>TADS</title>
   <style>
-    :root {
-      --bg: #0c1117;
-      --card: #101823;
-      --muted: #7d8590;
-      --line: #263040;
-      --accent: #3fb950;
-      --text: #e6edf3;
-      --blue: #58a6ff;
-      --warn: #ffb454;
-      --bad: #ff6b6b;
-      --good: #58d68d;
+    :root{
+      --bg:#0c1117;--card:#101823;--muted:#7d8590;--line:#263040;--accent:#3fb950;
+      --text:#e6edf3;--blue:#58a6ff;--warn:#ffb454;--bad:#ff6b6b;--good:#58d68d;
     }
-
-    /* универсальная стилизация скроллов */
-    ::-webkit-scrollbar {
-      width: 10px;
-      height: 10px;
-    }
-
-    ::-webkit-scrollbar-track {
-      background: var(--card);
-      border: 1px solid var(--line);
-      border-radius: 8px;
-    }
-
-    ::-webkit-scrollbar-thumb {
-      background: var(--line);
-      border-radius: 8px;
-      border: 2px solid var(--card);
-    }
-
-    ::-webkit-scrollbar-thumb:hover {
-      background: var(--accent);
-    }
-
-    /* для Firefox */
-    * {
-      scrollbar-width: thin;
-      scrollbar-color: var(--line) var(--card);
-    }
-
-    * {
-      box-sizing: border-box
-    }
-
-    body {
-      margin: 0;
-      background: var(--bg);
-      color: var(--text);
-      font-family: Inter, system-ui, Segoe UI, Arial, sans-serif
-    }
-
-    header {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 60px;                 /* фиксированная высота */
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 14px 20px;
-  border-bottom: 1px solid var(--line);
-  background: #0b1522;
-  z-index: 10;
-}
-
-    header h1 {
-      margin: 0;
-      font-size: 18px;
-      font-weight: 600
-    }
-
-    header .actions {
-      display: flex;
-      gap: 8px
-    }
-
-    button {
-      background: #162233;
-      border: 1px solid var(--line);
-      color: var(--text);
-      padding: 8px 10px;
-      border-radius: 8px;
-      cursor: pointer
-    }
-
-    button:hover {
-      border-color: #3b4b63
-    }
-
-    .layout {
-  display: grid;
-  grid-template-columns: 1.2fr 1fr 1fr 1fr 1fr;
-  gap: 16px;
-  padding: 16px;
-  margin-top: 60px;             /* отступ под header */
-  height: calc(100vh - 60px);   /* панели занимают оставшееся место */
-  overflow: hidden;
-}
-
-    @media (max-width:1300px) {
-      .layout {
-        grid-template-columns: 1fr
-      }
-    }
-
-    .panel {
-  background: var(--card);
-  border: 1px solid var(--line);
-  border-radius: 12px;
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-}
-
-    .panel h2 {
-      margin: 0;
-      padding: 12px 14px;
-      border-bottom: 1px solid var(--line);
-      font-size: 15px;
-      font-weight: 600
-    }
-
-    .panel .content {
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-  padding: 12px;
-  overflow: hidden; /* не прокручивается вся панель */
-}
-
-    .pool-tools {
-  flex: 0 0 140px; /* фиксированная высота (можно подстроить) */
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  margin-bottom: 10px;
-}
-
-    .search {
-      flex: 1
-    }
-
-    .search input {
-      width: 100%;
-      padding: 8px 10px;
-      border-radius: 8px;
-      border: 1px solid var(--line);
-      background: #0f1826;
-      color: var(--text)
-    }
-
-    .tagbar {
-      display: flex;
-      gap: 6px;
-      flex-wrap: wrap;
-      margin: 6px 0
-    }
-
-    .tag {
-      font-size: 11px;
-      border: 1px solid var(--line);
-      padding: 3px 6px;
-      border-radius: 999px;
-      color: var(--muted)
-    }
-
-    .pool {
-  flex: 1 1 auto;
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-  gap: 10px;
-  overflow-y: auto;
-  padding-right: 6px;
-}
-
-    .card {
-      background: #0f1827;
-      border: 1px solid var(--line);
-      border-radius: 12px;
-      padding: 10px;
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-      cursor: grab
-    }
-
-    .card.dragging {
-      opacity: .5
-    }
-
-    .title {
-      display: flex;
-      justify-content: space-between;
-      gap: 8px;
-      align-items: center
-    }
-
-    .title .name {
-      font-weight: 600
-    }
-
-    .badge {
-      font-size: 11px;
-      padding: 2px 6px;
-      border-radius: 6px;
-      border: 1px solid var(--line);
-      color: var(--muted)
-    }
-
-    .row {
-      display: flex;
-      gap: 8px;
-      flex-wrap: wrap
-    }
-
-    .kv {
-      flex: 1;
-      min-width: 90px;
-      font-size: 12px;
-      color: var(--muted)
-    }
-
-    .kv b {
-      color: var(--text)
-    }
-
-    .dropzone {
-      min-height: 120px;
-      border: 2px dashed #263448;
-      border-radius: 12px;
-      padding: 8px;
-      margin-top: 10px;
-      display: grid;
-      gap: 8px;
-      max-height: calc(100vh - 220px);
-      overflow-y: auto;
-    }
-
-    .dropzone.over {
-      border-color: var(--accent);
-      box-shadow: 0 0 0 2px #3fb95022 inset
-    }
-
-    .team-header {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      flex-wrap: wrap
-    }
-
-    .team-header2 {
-      display: flex;
-      gap: 8px;
-      flex-wrap: nowrap;
-      margin-bottom: 10px;
-      flex-direction: column;
-    }
-
-    .meter {
-      position: relative;
-      height: 10px;
-      background: #0e1522;
-      border: 1px solid var(--line);
-      border-radius: 999px;
-      overflow: hidden;
-      flex: 1
-    }
-
-    .meter>span {
-      position: absolute;
-      inset: 0;
-      transform-origin: left center;
-      background: linear-gradient(90deg, #2ea043, #3fb950)
-    }
-
-    .summary {
-      display: flex;
-      gap: 8px;
-      margin-top: 10px;
-      flex-direction: row;
-      flex-wrap: wrap;
-      justify-content: space-between;
-    }
-
-    .summary .b {
-      background: #0f1a2a;
-      border: 1px solid var(--line);
-      border-radius: 8px;
-      padding: 8px;
-      font-size: 12px
-    }
-
-    .summary .b .v {
-      font-weight: 700
-    }
-
-    .ghost {
-      opacity: .4
-    }
-
-    .muted {
-      color: var(--muted)
-    }
-
-    .ok {
-      color: var(--good)
-    }
-
-    .warn {
-      color: var(--warn)
-    }
-
-    .bad {
-      color: var(--bad)
-    }
+    ::-webkit-scrollbar{width:10px;height:10px}
+    ::-webkit-scrollbar-track{background:var(--card);border:1px solid var(--line);border-radius:8px}
+    ::-webkit-scrollbar-thumb{background:var(--line);border-radius:8px;border:2px solid var(--card)}
+    ::-webkit-scrollbar-thumb:hover{background:var(--accent)}
+    *{scrollbar-width:thin;scrollbar-color:var(--line) var(--card);box-sizing:border-box}
+    body{margin:0;background:var(--bg);color:var(--text);font-family:Inter,system-ui,Segoe UI,Arial,sans-serif}
+    header{position:fixed;top:0;left:0;right:0;height:60px;display:flex;align-items:center;justify-content:space-between;padding:14px 20px;border-bottom:1px solid var(--line);background:#0b1522;z-index:10}
+    header h1{margin:0;font-size:18px;font-weight:600}
+    header .actions{display:flex;gap:8px}
+    button{background:#162233;border:1px solid var(--line);color:var(--text);padding:8px 10px;border-radius:8px;cursor:pointer}
+    button:hover{border-color:#3b4b63}
+    .layout{display:grid;grid-template-columns:1.2fr 1fr 1fr 1fr 1fr;gap:16px;padding:16px;margin-top:60px;height:calc(100vh - 60px);overflow:hidden}
+    @media (max-width:1300px){.layout{grid-template-columns:1fr}}
+    .panel{background:var(--card);border:1px solid var(--line);border-radius:12px;overflow:hidden;display:flex;flex-direction:column;height:100%}
+    .panel h2{margin:0;padding:12px 14px;border-bottom:1px solid var(--line);font-size:15px;font-weight:600}
+    .panel .content{display:flex;flex-direction:column;height:100%;padding:12px;overflow:hidden}
+    .pool-tools{flex:0 0 140px;display:flex;flex-direction:column;gap:8px;margin-bottom:10px}
+    .search{flex:1}
+    .search input{width:100%;padding:8px 10px;border-radius:8px;border:1px solid var(--line);background:#0f1826;color:var(--text)}
+    .tagbar{display:flex;gap:6px;flex-wrap:wrap;margin:6px 0}
+    .tag{font-size:11px;border:1px solid var(--line);padding:3px 6px;border-radius:999px;color:var(--muted)}
+    .pool{flex:1 1 auto;display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px;overflow-y:auto;padding-right:6px}
+    .card{background:#0f1827;border:1px solid var(--line);border-radius:12px;padding:10px;display:flex;flex-direction:column;gap:6px;cursor:grab}
+    .card.dragging{opacity:.5}
+    .title{display:flex;justify-content:space-between;gap:8px;align-items:center}
+    .title .name{font-weight:600}
+    .badge{font-size:11px;padding:2px 6px;border-radius:6px;border:1px solid var(--line);color:var(--muted)}
+    .row{display:flex;gap:8px;flex-wrap:wrap}
+    .kv{flex:1;min-width:90px;font-size:12px;color:var(--muted)}
+    .kv b{color:var(--text)}
+    .dropzone{min-height:120px;border:2px dashed #263448;border-radius:12px;padding:8px;margin-top:10px;display:grid;gap:8px;max-height:calc(100vh - 260px);overflow-y:auto}
+    .dropzone.over{border-color:var(--accent);box-shadow:0 0 0 2px #3fb95022 inset}
+    .team-header2{display:flex;gap:8px;flex-direction:column;margin-bottom:10px}
+    .meterRow{display:flex;align-items:center;gap:10px}
+    .meterRow .label{width:64px;font-size:12px;color:var(--muted)}
+    .meter{position:relative;height:10px;background:#0e1522;border:1px solid var(--line);border-radius:999px;overflow:hidden;flex:1}
+    .meter>span{position:absolute;inset:0;transform-origin:left center;background:linear-gradient(90deg,#2ea043,#3fb950)}
+    .summary{display:flex;gap:8px;margin-top:10px;flex-direction:row;flex-wrap:wrap;justify-content:space-between}
+    .summary .b{background:#0f1a2a;border:1px solid var(--line);border-radius:8px;padding:8px;font-size:12px}
+    .summary .b .v{font-weight:700}
+    .muted{color:var(--muted)}
+    .ok{color:var(--good)}.warn{color:var(--warn)}.bad{color:var(--bad)}
   </style>
 </head>
-
 <body>
   <header>
     <h1>TADS</h1>
     <div class="actions">
-      <!-- <button id="autoBalance">Автобаланс квот</button> -->
       <button id="reset">Сбросить</button>
-      <!-- <button id="save">Сохранить</button> -->
     </div>
   </header>
 
@@ -348,60 +72,61 @@
           <span class="tag">Квота = roundEven(слоты × посещаемость%)</span>
           <div class="sort">
             <label for="sortSelect" style="font-size:12px;color:var(--muted)">Сортировать по:</label>
-            <select id="sortSelect"
-              style="padding:6px;border-radius:6px;background:#0f1826;color:var(--text);border:1px solid var(--line)">
+            <select id="sortSelect" style="padding:6px;border-radius:6px;background:#0f1826;color:var(--text);border:1px solid var(--line)">
               <option value="kpd">КПД</option>
               <option value="slots">Слоты</option>
               <option value="quota">Квота</option>
               <option value="weighted">Взвеш. КПД</option>
             </select>
           </div>
-
         </div>
         <div class="pool" id="pool"></div>
       </div>
     </div>
 
-    <!-- КОЛОНКИ СТОРОН -->
+    <!-- СТОРОНЫ -->
     <div class="panel">
       <h2>Сторона A</h2>
       <div class="content">
-        <div class="team-header">
-          <div class="meter" data-meter><span style="transform:scaleX(0)"></span></div>
-          <span class="muted" data-left>0 / 92</span>
+        <div class="team-header2">
+          <div class="meterRow"><span class="label">Квоты</span><div class="meter" data-meter-q><span style="transform:scaleX(0)"></span></div><span class="muted" data-left-q>0 / 92</span></div>
+          <div class="meterRow"><span class="label">Слоты</span><div class="meter" data-meter-s><span style="transform:scaleX(0)"></span></div><span class="muted" data-left-s>0 / 92</span></div>
         </div>
         <div class="summary" data-summary></div>
         <div class="dropzone" data-drop></div>
       </div>
     </div>
+
     <div class="panel">
       <h2>Сторона B</h2>
       <div class="content">
-        <div class="team-header">
-          <div class="meter" data-meter><span style="transform:scaleX(0)"></span></div><span class="muted" data-left>0 /
-            92</span>
+        <div class="team-header2">
+          <div class="meterRow"><span class="label">Квоты</span><div class="meter" data-meter-q><span style="transform:scaleX(0)"></span></div><span class="muted" data-left-q>0 / 92</span></div>
+          <div class="meterRow"><span class="label">Слоты</span><div class="meter" data-meter-s><span style="transform:scaleX(0)"></span></div><span class="muted" data-left-s>0 / 92</span></div>
         </div>
         <div class="summary" data-summary></div>
         <div class="dropzone" data-drop></div>
       </div>
     </div>
+
     <div class="panel">
       <h2>Сторона C</h2>
       <div class="content">
-        <div class="team-header">
-          <div class="meter" data-meter><span style="transform:scaleX(0)"></span></div><span class="muted" data-left>0 /
-            92</span>
+        <div class="team-header2">
+          <div class="meterRow"><span class="label">Квоты</span><div class="meter" data-meter-q><span style="transform:scaleX(0)"></span></div><span class="muted" data-left-q>0 / 92</span></div>
+          <div class="meterRow"><span class="label">Слоты</span><div class="meter" data-meter-s><span style="transform:scaleX(0)"></span></div><span class="muted" data-left-s>0 / 92</span></div>
         </div>
         <div class="summary" data-summary></div>
         <div class="dropzone" data-drop></div>
       </div>
     </div>
+
     <div class="panel">
       <h2>Сторона D</h2>
       <div class="content">
-        <div class="team-header">
-          <div class="meter" data-meter><span style="transform:scaleX(0)"></span></div><span class="muted" data-left>0 /
-            92</span>
+        <div class="team-header2">
+          <div class="meterRow"><span class="label">Квоты</span><div class="meter" data-meter-q><span style="transform:scaleX(0)"></span></div><span class="muted" data-left-q>0 / 92</span></div>
+          <div class="meterRow"><span class="label">Слоты</span><div class="meter" data-meter-s><span style="transform:scaleX(0)"></span></div><span class="muted" data-left-s>0 / 92</span></div>
         </div>
         <div class="summary" data-summary></div>
         <div class="dropzone" data-drop></div>
@@ -410,229 +135,188 @@
   </section>
 
   <script>
-    // === ДАННЫЕ: 43 отряда ===
-    // slots — из вашего списка; kpd — из рейтинга; att — из панелей Server 2/3 (финальный % справа)
+    // --- ДАННЫЕ ---
     const squads = [
-      { tag: 'GNT', name: 'Гранит [GNT]', slots: 8, kpd: 0.915, att: 104 },
-      { tag: 'TT', name: 'Triad Team [TT]', slots: 9, kpd: 0.670, att: 99 },
-      { tag: 'DWI', name: 'Deal With It [DWI]', slots: 10, kpd: 1.550, att: 101 },
-      { tag: 'BW', name: 'BlackWater [BW]', slots: 11, kpd: 0.302, att: 103 },
-      { tag: 'BARS', name: 'BARS [BARS]', slots: 12, kpd: 0.539, att: 82 },
-      { tag: 'Guard', name: 'ГВАРДИЯ [Guard]', slots: 11, kpd: 0.829, att: 94 },
-      { tag: 'KLEN', name: 'KLEN [KLEN]', slots: 6, kpd: 0.492, att: 72 },
-      { tag: 'MERCY', name: 'NO MERCY [MERCY]', slots: 10, kpd: 1.350, att: 83 },
-      { tag: 'FUNT', name: 'FUN TEAM [FUNT]', slots: 6, kpd: 0.591, att: 105 },
-      { tag: 'BEAR', name: 'ЧВК "BEAR" [BEAR]', slots: 9, kpd: 0.140, att: 93 },
-      { tag: 'inTeam', name: 'inTeam [inTeam]', slots: 6, kpd: 0.911, att: 120 },
-      { tag: 'FOX', name: 'FOX [FOX]', slots: 7, kpd: 0.370, att: 109 },
-      { tag: 'ODK', name: 'ODK [ODK]', slots: 9, kpd: 0.704, att: 100 },
-      { tag: 'TMR', name: 'TeamRed [TMR]', slots: 8, kpd: 0.635, att: 101 },
-      { tag: 'V', name: 'Вектор [V]', slots: 11, kpd: 0.635, att: 109 },
-      { tag: 'GRU', name: 'ГРУ [GRU]', slots: 6, kpd: 0.551, att: 90 },
-      { tag: 'SVG', name: 'СВАРОГ [SVG]', slots: 8, kpd: 0.468, att: 99 },
-      { tag: 'VDV', name: 'Воздушно-десантные войска [VDV]', slots: 10, kpd: 0.735, att: 102 },
-      { tag: 'LS', name: 'Lucky Squad: Reborn [LS]', slots: 8, kpd: 0.497, att: 104 },
-      { tag: 'CCO', name: 'Силы Cпециальных Операций [CCO]', slots: 7, kpd: 0.611, att: 94 },
-      { tag: 'DELTA', name: 'DELTA [DELTA]', slots: 12, kpd: 1.863, att: 100 },
-      { tag: 'KPblM', name: 'КРЫМ [KPblM]', slots: 12, kpd: 1.375, att: 96 },
-      { tag: 'ARW', name: 'Army Ranger Wing [ARW]', slots: 7, kpd: 0.594, att: 110 },
-      { tag: 'B', name: 'ВСН Беркут [B]', slots: 10, kpd: 0.416, att: 107 },
-      { tag: 'SSG', name: 'Special Shock Group [SSG]', slots: 6, kpd: 1.275, att: 103 },
-      { tag: 'OMCB', name: 'OMCB [OMCB]', slots: 12, kpd: 0.743, att: 92 },
-      { tag: 'BTF', name: 'BTR on FIRE [BTF]', slots: 6, kpd: 0.408, att: 97 },
-      { tag: 'RA', name: 'Red Army [RA]', slots: 12, kpd: 0.630, att: 103 },
-      { tag: 'HA', name: 'Наша Армия [СССР] [HA]', slots: 7, kpd: 0.368, att: 100 },
-      { tag: 'IRBIS', name: 'ДШМГ "ИРБИС" [IRBIS]', slots: 6, kpd: 0.555, att: 106 },
-      { tag: 'GL', name: 'Green Light [GL]', slots: 8, kpd: 0.683, att: 92 },
-      { tag: 'MIR', name: 'Первый миротворческий корпус [MIR]', slots: 6, kpd: 0.692, att: 103 },
-      { tag: 'TFN', name: 'ОСН «ТАЙФУН» [TFN]', slots: 9, kpd: 0.606, att: 94 },
-      { tag: 'RM', name: 'RM [RM]', slots: 11, kpd: 1.192, att: 106 },
-      { tag: 'SPARTA', name: 'Штурмовая группа "SPARTA" [SPARTA]', slots: 7, kpd: 1.101, att: 98 },
-      { tag: 'AT', name: 'ArmA-Tushino [AT]', slots: 6, kpd: 0.674, att: 90 },
-      { tag: 'SR', name: 'Special Reconnaissance [SR]', slots: 9, kpd: 0.864, att: 107 },
-      { tag: 'RATS', name: 'Russian Advanced Tactical Squad [RATS]', slots: 6, kpd: 0.416, att: 81 },
-      { tag: '75th', name: '75th Rangers [75th]', slots: 9, kpd: 0.921, att: 99 },
-      { tag: 'DER', name: 'DER-Stosshammer [DER]', slots: 12, kpd: 0.355, att: 101 },
-      { tag: 'TAF', name: 'The Alpha Force [TAF]', slots: 8, kpd: 0.607, att: 109 },
-      { tag: 'SIGMA', name: 'United Special Squad "SIGMA" [SIGMA]', slots: 7, kpd: 0.761, att: 100 },
-      { tag: 'JAGER', name: 'Jagdkommando [JAGER]', slots: 8, kpd: 0.493, att: 104 },
+      { tag:'GNT', name:'Гранит [GNT]', slots:8,  kpd:0.915, att:104 },
+      { tag:'TT', name:'Triad Team [TT]', slots:9,  kpd:0.670, att:99  },
+      { tag:'DWI', name:'Deal With It [DWI]', slots:10, kpd:1.550, att:101 },
+      { tag:'BW', name:'BlackWater [BW]', slots:11, kpd:0.302, att:103 },
+      { tag:'BARS', name:'BARS [BARS]', slots:12, kpd:0.539, att:82  },
+      { tag:'Guard', name:'ГВАРДИЯ [Guard]', slots:11, kpd:0.829, att:94  },
+      { tag:'KLEN', name:'KLEN [KLEN]', slots:6,  kpd:0.492, att:72  },
+      { tag:'MERCY', name:'NO MERCY [MERCY]', slots:10, kpd:1.350, att:83  },
+      { tag:'FUNT', name:'FUN TEAM [FUNT]', slots:6,  kpd:0.591, att:105 },
+      { tag:'BEAR', name:'ЧВК "BEAR" [BEAR]', slots:9,  kpd:0.140, att:93  },
+      { tag:'inTeam', name:'inTeam [inTeam]', slots:6,  kpd:0.911, att:120 },
+      { tag:'FOX', name:'FOX [FOX]', slots:7,  kpd:0.370, att:109 },
+      { tag:'ODK', name:'ODK [ODK]', slots:9,  kpd:0.704, att:100 },
+      { tag:'TMR', name:'TeamRed [TMR]', slots:8,  kpd:0.635, att:101 },
+      { tag:'V', name:'Вектор [V]', slots:11, kpd:0.635, att:109 },
+      { tag:'GRU', name:'ГРУ [GRU]', slots:6,  kpd:0.551, att:90  },
+      { tag:'SVG', name:'СВАРОГ [SVG]', slots:8,  kpd:0.468, att:99  },
+      { tag:'VDV', name:'Воздушно-десантные войска [VDV]', slots:10, kpd:0.735, att:102 },
+      { tag:'LS', name:'Lucky Squad: Reborn [LS]', slots:8,  kpd:0.497, att:104 },
+      { tag:'CCO', name:'Силы Cпециальных Операций [CCO]', slots:7,  kpd:0.611, att:94  },
+      { tag:'DELTA', name:'DELTA [DELTA]', slots:12, kpd:1.863, att:100 },
+      { tag:'KPblM', name:'КРЫМ [KPblM]', slots:12, kpd:1.375, att:96  },
+      { tag:'ARW', name:'Army Ranger Wing [ARW]', slots:7,  kpd:0.594, att:110 },
+      { tag:'B', name:'ВСН Беркут [B]', slots:10, kpd:0.416, att:107 },
+      { tag:'SSG', name:'Special Shock Group [SSG]', slots:6,  kpd:1.275, att:103 },
+      { tag:'OMCB', name:'OMCB [OMCB]', slots:12, kpd:0.743, att:92  },
+      { tag:'BTF', name:'BTR on FIRE [BTF]', slots:6,  kpd:0.408, att:97  },
+      { tag:'RA', name:'Red Army [RA]', slots:12, kpd:0.630, att:103 },
+      { tag:'HA', name:'Наша Армия [СССР] [HA]', slots:7,  kpd:0.368, att:100 },
+      { tag:'IRBIS', name:'ДШМГ "ИРБИС" [IRBIS]', slots:6,  kpd:0.555, att:106 },
+      { tag:'GL', name:'Green Light [GL]', slots:8,  kpd:0.683, att:92  },
+      { tag:'MIR', name:'Первый миротворческий корпус [MIR]', slots:6,  kpd:0.692, att:103 },
+      { tag:'TFN', name:'ОСН «ТАЙФУН» [TFN]', slots:9,  kpd:0.606, att:94  },
+      { tag:'RM', name:'RM [RM]', slots:11, kpd:1.192, att:106 },
+      { tag:'SPARTA', name:'Штурмовая группа "SPARTA" [SPARTA]', slots:7,  kpd:1.101, att:98  },
+      { tag:'AT', name:'ArmA-Tushino [AT]', slots:6,  kpd:0.674, att:90  },
+      { tag:'SR', name:'Special Reconnaissance [SR]', slots:9,  kpd:0.864, att:107 },
+      { tag:'RATS', name:'Russian Advanced Tactical Squad [RATS]', slots:6,  kpd:0.416, att:81  },
+      { tag:'75th', name:'75th Rangers [75th]', slots:9,  kpd:0.921, att:99  },
+      { tag:'DER', name:'DER-Stosshammer [DER]', slots:12, kpd:0.355, att:101 },
+      { tag:'TAF', name:'The Alpha Force [TAF]', slots:8,  kpd:0.607, att:109 },
+      { tag:'SIGMA', name:'United Special Squad "SIGMA" [SIGMA]', slots:7,  kpd:0.761, att:100 },
+      { tag:'JAGER', name:'Jagdkommando [JAGER]', slots:8,  kpd:0.493, att:104 },
     ];
 
     const poolEl = document.getElementById('pool');
+    const roundEven = n => Math.max(0, Math.round(n/2)*2);
+    const computeQuota = s => roundEven(s.slots * (s.att??100)/100);
 
-    const roundEven = n => Math.max(0, Math.round(n / 2) * 2);
-    function computeQuota(s) { return roundEven(s.slots * (s.att ?? 100) / 100) }
-    function weightedKPD(list) {
-      const totalSlots = list.reduce((a, x) => a + x.slots, 0);
-      if (!totalSlots) return 0;
-      const sumWeighted = list.reduce((a, x) => a + x.kpd * x.slots, 0);
-      return sumWeighted / totalSlots;
-    }
-
-    function squadCard(s) {
-      const weighted = (s.kpd * s.slots).toFixed(3);
-      const div = document.createElement('div');
-      div.className = 'card';
-      div.draggable = true; div.dataset.tag = s.tag;
-      div.innerHTML = `
-    <div class="title"><span class="name">${s.name}</span>
-      <span class="badge">${s.tag}</span></div>
-    <div class="row">
-      <div class="kv">Слоты: <b>${s.slots}</b></div>
-      <div class="kv">Посещ.: <b>${s.att}%</b></div>
-      <div class="kv">Квота: <b>${computeQuota(s)}</b></div>
-    </div>
-    <div class="row">
-      <div class="kv">КПД: <b>${s.kpd.toFixed(3)}</b></div>
-      <div class="kv">КПД взв.: <b>${weighted}</b></div>
-    </div>
-  `;
+    function squadCard(s){
+      const div=document.createElement('div');
+      div.className='card'; div.draggable=true; div.dataset.tag=s.tag;
+      div.innerHTML=`
+        <div class="title"><span class="name">${s.name}</span><span class="badge">${s.tag}</span></div>
+        <div class="row">
+          <div class="kv">Слоты: <b>${s.slots}</b></div>
+          <div class="kv">Посещ.: <b>${s.att}%</b></div>
+          <div class="kv">Квота: <b>${computeQuota(s)}</b></div>
+        </div>
+        <div class="row">
+          <div class="kv">КПД: <b>${s.kpd.toFixed(3)}</b></div>
+          <div class="kv">КПД взв.: <b>${(s.kpd*s.slots).toFixed(3)}</b></div>
+        </div>`;
       return div;
     }
 
-    // render pool
-    let currentSort = 'kpd'; // сортировка по умолчанию
-
-    document.getElementById('sortSelect').addEventListener('change', e => {
-      currentSort = e.target.value;
-      renderPool(document.getElementById('q').value);
+    let currentSort='kpd';
+    document.getElementById('sortSelect').addEventListener('change',e=>{
+      currentSort=e.target.value; renderPool(document.getElementById('q').value);
     });
 
-    function renderPool(filter = '') {
-      poolEl.innerHTML = '';
-      const q = filter.trim().toLowerCase();
-      const filtered = squads
-        .filter(s => !assigned.has(s.tag))
-        .filter(s => !q || s.name.toLowerCase().includes(q) || s.tag.toLowerCase().includes(q));
+    function renderPool(filter=''){
+      poolEl.innerHTML='';
+      const q=filter.trim().toLowerCase();
+      const filtered=squads
+        .filter(s=>!assigned.has(s.tag))
+        .filter(s=>!q||s.name.toLowerCase().includes(q)||s.tag.toLowerCase().includes(q));
 
-      // сортировка
-      filtered.sort((a, b) => {
-        if (currentSort === 'slots') return b.slots - a.slots;
-        if (currentSort === 'quota') return computeQuota(b) - computeQuota(a);
-        if (currentSort === 'weighted') return (b.kpd * b.slots) - (a.kpd * a.slots);
-        return b.kpd - a.kpd; // по КПД
+      filtered.sort((a,b)=>{
+        if(currentSort==='slots') return b.slots-a.slots;
+        if(currentSort==='quota') return computeQuota(b)-computeQuota(a);
+        if(currentSort==='weighted') return (b.kpd*b.slots)-(a.kpd*a.slots);
+        return b.kpd-a.kpd;
       });
 
-      filtered.forEach(s => poolEl.appendChild(squadCard(s)));
+      filtered.forEach(s=>poolEl.appendChild(squadCard(s)));
       bindDnD();
     }
 
-    // teams state
-    const teamZones = [...document.querySelectorAll('[data-drop]')];
-    const assigned = new Map(); // tag -> team index
+    const teamZones=[...document.querySelectorAll('[data-drop]')];
+    const assigned=new Map();
 
-    function currentTeamList(zone) {
-      const tags = [...zone.querySelectorAll('.card')].map(el => el.dataset.tag);
-      return tags.map(t => squads.find(x => x.tag === t));
+    function currentTeamList(zone){
+      const tags=[...zone.querySelectorAll('.card')].map(el=>el.dataset.tag);
+      return tags.map(t=>squads.find(x=>x.tag===t));
     }
 
-    function updateTeamPanel(panel) {
+    function updateTeamPanel(panel){
       const zone = panel.querySelector('[data-drop]');
-      const sumEl = panel.querySelector('[data-left]');
-      const bar = panel.querySelector('[data-meter] span');
+      const barQ = panel.querySelector('[data-meter-q] span');
+      const barS = panel.querySelector('[data-meter-s] span');
+      const leftQ = panel.querySelector('[data-left-q]');
+      const leftS = panel.querySelector('[data-left-s]');
       const summary = panel.querySelector('[data-summary]');
 
       const list = currentTeamList(zone);
-      const slots = list.reduce((a, x) => a + x.slots, 0);
-      const quotas = list.reduce((a, x) => a + computeQuota(x), 0);
+      const slots = list.reduce((a,x)=>a+x.slots,0);
+      const quotas = list.reduce((a,x)=>a+computeQuota(x),0);
+      const avg = list.length ? (list.reduce((a,x)=>a+x.kpd,0)/list.length) : 0;
+      const sumWeightedKPD = list.reduce((a,x)=>a+x.kpd*x.slots,0);
 
-      // расчёт суммы взвешенного КПД
-      const sumWeightedKPD = list.reduce((a, x) => a + x.kpd * x.slots, 0);
+      const pctQ = Math.min(1, quotas/92);
+      const pctS = Math.min(1, slots/92);
 
-      const avg = list.length ? (list.reduce((a, x) => a + x.kpd, 0) / list.length) : 0;
-      const pct = Math.min(1, quotas / 92);
+      barQ.style.transform=`scaleX(${pctQ})`;
+      barS.style.transform=`scaleX(${pctS})`;
+      barQ.style.background = quotas>92 ? 'linear-gradient(90deg,#ff6b6b,#ffa8a8)' : 'linear-gradient(90deg,#2ea043,#3fb950)';
+      barS.style.background = slots>92  ? 'linear-gradient(90deg,#ff6b6b,#ffa8a8)' : 'linear-gradient(90deg,#2ea043,#3fb950)';
 
-      bar.style.transform = `scaleX(${pct})`;
-      bar.style.background = quotas > 92 ? 'linear-gradient(90deg,#ff6b6b,#ffa8a8)' : 'linear-gradient(90deg,#2ea043,#3fb950)';
-      sumEl.textContent = `${quotas} / 92 квоты • ${slots} слотов`;
+      leftQ.textContent = `${quotas} / 92`;
+      leftS.textContent = `${slots} / 92`;
 
       summary.innerHTML = `
-    <div class="b">Отрядов <div class="v">${list.length}</div></div>
-    <div class="b">Σ квот <div class="v ${quotas > 92 ? 'bad' : (quotas >= 88 ? 'ok' : 'warn')}">${quotas}</div></div>
-    <div class="b">КПД ср. <div class="v">${avg.toFixed(3)}</div></div>
-    <div class="b">Σ Взв. КПД <div class="v">${sumWeightedKPD.toFixed(3)}</div></div>`;
+        <div class="b">Отрядов <div class="v">${list.length}</div></div>
+        <div class="b">Σ квот <div class="v ${quotas>92?'bad':(quotas>=88?'ok':'warn')}">${quotas}</div></div>
+        <div class="b">КПД ср. <div class="v">${avg.toFixed(3)}</div></div>
+        <div class="b">Σ Взв. КПД <div class="v">${sumWeightedKPD.toFixed(3)}</div></div>`;
     }
 
-
-    function syncAll() {
-      document.querySelectorAll('.panel').forEach(p => {
-        if (p.querySelector('[data-drop]')) updateTeamPanel(p);
-      })
-      renderPool(document.getElementById('q').value)
-      persist()
+    function syncAll(){
+      document.querySelectorAll('.panel').forEach(p=>{
+        if(p.querySelector('[data-drop]')) updateTeamPanel(p);
+      });
+      renderPool(document.getElementById('q').value);
+      persist();
     }
 
-    // drag & drop
-    let dragEl = null; let dragOrigin = null;
-    function bindDnD() {
-      document.querySelectorAll('.card').forEach(el => {
-        el.addEventListener('dragstart', e => { dragEl = el; dragOrigin = el.parentElement; el.classList.add('dragging') })
-        el.addEventListener('dragend', e => { el.classList.remove('dragging'); dragEl = null; dragOrigin = null; })
-      })
+    let dragEl=null, dragOrigin=null;
+    function bindDnD(){
+      document.querySelectorAll('.card').forEach(el=>{
+        el.addEventListener('dragstart',e=>{dragEl=el;dragOrigin=el.parentElement;el.classList.add('dragging')});
+        el.addEventListener('dragend',e=>{el.classList.remove('dragging');dragEl=null;dragOrigin=null});
+      });
     }
-    teamZones.forEach(zone => {
-      zone.addEventListener('dragover', e => { e.preventDefault(); zone.classList.add('over') })
-      zone.addEventListener('dragleave', () => zone.classList.remove('over'))
-      zone.addEventListener('drop', e => {
-        e.preventDefault(); zone.classList.remove('over'); if (!dragEl) return;
-        const tag = dragEl.dataset.tag; const idx = teamZones.indexOf(zone);
-        assigned.set(tag, idx); zone.appendChild(dragEl); syncAll();
-      })
-    })
-    // return to pool on click with Alt
-    document.addEventListener('click', e => {
-      if (e.altKey && e.target.closest('.card')) {
-        const card = e.target.closest('.card'); const tag = card.dataset.tag;
+    teamZones.forEach(zone=>{
+      zone.addEventListener('dragover',e=>{e.preventDefault();zone.classList.add('over')});
+      zone.addEventListener('dragleave',()=>zone.classList.remove('over'));
+      zone.addEventListener('drop',e=>{
+        e.preventDefault();zone.classList.remove('over'); if(!dragEl) return;
+        const tag=dragEl.dataset.tag; const idx=teamZones.indexOf(zone);
+        assigned.set(tag,idx); zone.appendChild(dragEl); syncAll();
+      });
+    });
+    document.addEventListener('click',e=>{
+      if(e.altKey && e.target.closest('.card')){
+        const card=e.target.closest('.card'); const tag=card.dataset.tag;
         assigned.delete(tag); poolEl.appendChild(card); syncAll();
       }
-    })
+    });
 
-    // search
-    document.getElementById('q').addEventListener('input', e => renderPool(e.target.value))
+    document.getElementById('q').addEventListener('input',e=>renderPool(e.target.value));
 
-    // persist
-    const KEY = 'tsg_draft_v1';
-    function persist() {
-      const state = [...assigned.entries()]; localStorage.setItem(KEY, JSON.stringify(state));
-    }
-    function restore() {
-      try {
-        const raw = localStorage.getItem(KEY); if (!raw) return; const state = new Map(JSON.parse(raw)); state.forEach((team, tag) => {
-          const card = [...poolEl.querySelectorAll('.card')].find(c => c.dataset.tag === tag) || squadCard(squads.find(s => s.tag === tag));
-          assigned.set(tag, team); teamZones[team].appendChild(card);
+    const KEY='tsg_draft_v1';
+    function persist(){localStorage.setItem(KEY, JSON.stringify([...assigned.entries()]));}
+    function restore(){
+      try{
+        const raw=localStorage.getItem(KEY); if(!raw) return;
+        const state=new Map(JSON.parse(raw));
+        state.forEach((team,tag)=>{
+          const card=[...poolEl.querySelectorAll('.card')].find(c=>c.dataset.tag===tag) || squadCard(squads.find(s=>s.tag===tag));
+          assigned.set(tag,team); teamZones[team].appendChild(card);
         });
-      } catch { }
+      }catch{}
     }
 
-    // auto-balance: находит минимальную по квоте сторону и перекидывает ближайшую по квоте карточку из пула
-    // document.getElementById('autoBalance').addEventListener('click', () => {
-    //   const teams = teamZones.map(z => currentTeamList(z));
-    //   const sums = teams.map(list => list.reduce((a, x) => a + computeQuota(x), 0));
-    //   const target = 92; // цель на сторону
-    //   // простейшая итерация: пока есть пул и есть сторона < target-2 — кладём самую большую по квоте карточку
-    //   let poolList = squads.filter(s => !assigned.has(s.tag)).sort((a, b) => computeQuota(b) - computeQuota(a));
-    //   for (let guard = 0; guard < 200 && poolList.length; guard++) {
-    //     const minIdx = sums.indexOf(Math.min(...sums));
-    //     if (sums[minIdx] >= target - 2) break;
-    //     const take = poolList.shift();
-    //     assigned.set(take.tag, minIdx);
-    //     const card = [...poolEl.querySelectorAll('.card')].find(c => c.dataset.tag === take.tag);
-    //     teamZones[minIdx].appendChild(card);
-    //     sums[minIdx] += computeQuota(take);
-    //   }
-    //   syncAll();
-    // })
-
-    document.getElementById('reset').addEventListener('click', () => {
+    document.getElementById('reset').addEventListener('click',()=>{
       assigned.clear(); renderPool(); persist(); syncAll(); location.reload();
-    })
-    // document.getElementById('save').addEventListener('click', () => {
-    //   persist(); alert('Сохранено');
-    // })
+    });
 
-    // init
     renderPool(''); restore(); syncAll();
   </script>
 </body>
-
 </html>
