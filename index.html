@@ -1,0 +1,666 @@
+<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>TADS</title>
+  <style>
+    :root {
+      --bg: #0c1117;
+      --card: #101823;
+      --muted: #7d8590;
+      --line: #263040;
+      --accent: #3fb950;
+      --text: #e6edf3;
+      --blue: #58a6ff;
+      --warn: #ffb454;
+      --bad: #ff6b6b;
+      --good: #58d68d;
+    }
+
+    ::-webkit-scrollbar {
+      width: 10px;
+      height: 10px
+    }
+
+    ::-webkit-scrollbar-track {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 8px
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: var(--line);
+      border-radius: 8px;
+      border: 2px solid var(--card)
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: var(--accent)
+    }
+
+    * {
+      scrollbar-width: thin;
+      scrollbar-color: var(--line) var(--card);
+      box-sizing: border-box
+    }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: Inter, system-ui, Segoe UI, Arial, sans-serif
+    }
+
+    /* Универсальный header */
+    header {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 60px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 20px;
+      border-bottom: 1px solid var(--line);
+      background: #0b1522;
+      z-index: 10
+    }
+
+    header h1 {
+      margin: 0;
+      font-size: 18px;
+      font-weight: 600
+    }
+
+    header .actions {
+      display: flex;
+      gap: 8px
+    }
+
+    button {
+      background: #162233;
+      border: 1px solid var(--line);
+      color: var(--text);
+      padding: 8px 10px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: border .2s, background .2s;
+    }
+
+    button:hover {
+      border-color: var(--accent);
+      background: #122033
+    }
+
+    /* Основная сетка */
+    .layout {
+      display: grid;
+      grid-template-columns: 1.2fr 1fr 1fr 1fr 1fr;
+      gap: 16px;
+      padding: 16px;
+      margin-top: 60px;
+      height: calc(100vh - 60px);
+      overflow: hidden
+    }
+
+    @media (max-width:1300px) {
+      .layout {
+        grid-template-columns: 1fr
+      }
+    }
+
+    .panel {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      height: 100%
+    }
+
+    .panel h2 {
+      margin: 0;
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--line);
+      font-size: 15px;
+      font-weight: 600
+    }
+
+    .panel .content {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      padding: 12px;
+      overflow: hidden
+    }
+
+    /* Пул */
+    .pool-tools {
+      flex: 0 0 170px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-bottom: 10px
+    }
+
+    .search {
+      flex: 1
+    }
+
+    .search input {
+      width: 100%;
+      padding: 8px 10px;
+      border-radius: 8px;
+      border: 1px solid var(--line);
+      background: #0f1826;
+      color: var(--text)
+    }
+
+    .tagbar {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      margin: 6px 0
+    }
+
+    .tag {
+      font-size: 11px;
+      border: 1px solid var(--line);
+      padding: 3px 6px;
+      border-radius: 999px;
+      color: var(--muted)
+    }
+
+    .rules {
+      font-size: 12px;
+      color: var(--muted);
+      line-height: 1.4
+    }
+
+    .pool {
+      flex: 1 1 auto;
+      display: flex;
+      flex-direction: column;
+      align-items: stretch;
+      justify-content: flex-start;
+      gap: 6px;
+      /* можно уменьшить или убрать вовсе */
+      overflow-y: auto;
+      padding-right: 6px;
+    }
+
+
+    /* Карточка отряда */
+    .card {
+      background: #0f1827;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 10px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 8px;
+      cursor: grab;
+      min-height: 150px;
+      max-height: 150px;
+      overflow: hidden;
+      transition: transform .15s, border .2s;
+    }
+
+    .card:hover {
+      transform: scale(1.02);
+      border-color: var(--accent)
+    }
+
+    .card.dragging {
+      opacity: .5
+    }
+
+    .title {
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      align-items: center
+    }
+
+    .title .name {
+      font-weight: 600;
+      font-size: 13px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis
+    }
+
+    .badge {
+      font-size: 11px;
+      padding: 2px 6px;
+      border-radius: 6px;
+      border: 1px solid var(--line);
+      color: var(--muted);
+      flex-shrink: 0
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 4px 8px;
+      overflow: hidden
+    }
+
+    .kv {
+      font-size: 12px;
+      color: var(--muted);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis
+    }
+
+    .kv b {
+      color: var(--text)
+    }
+
+    /* Стороны */
+    .dropzone {
+      display: flex;
+      flex-direction: column;
+      align-items: stretch;
+      justify-content: flex-start;
+      gap: 6px;
+      /* можно уменьшить или убрать вовсе */
+      overflow-y: auto;
+      height: calc(100vh - 260px);
+      border: 2px dashed #263448;
+      border-radius: 12px;
+      padding: 8px;
+      margin-top: 10px;
+    }
+
+
+    .team-header2 {
+      display: flex;
+      gap: 8px;
+      flex-direction: column;
+      margin-bottom: 10px
+    }
+
+    .meterRow {
+      display: flex;
+      align-items: center;
+      gap: 10px
+    }
+
+    .meterRow .label {
+      width: 90px;
+      font-size: 12px;
+      color: var(--muted)
+    }
+
+    .meter {
+      position: relative;
+      height: 10px;
+      background: #0e1522;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      overflow: hidden;
+      flex: 1
+    }
+
+    .meter>span {
+      position: absolute;
+      inset: 0;
+      transform-origin: left center;
+      background: linear-gradient(90deg, #2ea043, #3fb950)
+    }
+
+    .summary {
+      display: flex;
+      gap: 8px;
+      margin-top: 10px;
+      flex-direction: row;
+      flex-wrap: wrap;
+      justify-content: space-between
+    }
+
+    .summary .b {
+      background: #0f1a2a;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 8px;
+      font-size: 12px
+    }
+
+    .summary .b .v {
+      font-weight: 700
+    }
+
+    .muted {
+      color: var(--muted)
+    }
+
+    .ok {
+      color: var(--good)
+    }
+
+    .warn {
+      color: var(--warn)
+    }
+
+    .bad {
+      color: var(--bad)
+    }
+  </style>
+</head>
+
+<body>
+  <header>
+    <h1>TADS</h1>
+    <div class="actions">
+      <button onclick="location.href='stats.html'">Статистика</button>
+      <button onclick="location.href='info.html'">Инфо</button>
+      <button id="reset">Сбросить</button>
+    </div>
+  </header>
+
+  <section class="layout">
+    <!-- ПУЛ ОТРЯДОВ -->
+    <div class="panel" style="grid-column:1/2">
+      <h2>Пул отрядов</h2>
+      <div class="content">
+        <div class="pool-tools">
+          <div class="search"><input id="q" placeholder="Поиск: название, тэг" /></div>
+          <div class="tagbar">
+            <span class="tag">Перетаскивайте карточки на стороны</span>
+            <span class="tag">Alt+клик по карточке — вернуть в пул</span>
+          </div>
+          <div class="rules">
+            <b>Кап-система:</b> верхняя полоса — <i>Кап ВКПД</i> (доля от максимума среди сторон), нижняя — <i>Кап
+              слотов</i> (к 92). Полосы не переполняются; точные значения в суммах ниже.
+          </div>
+          <div class="sort">
+            <label for="sortSelect" style="font-size:12px;color:var(--muted)">Сортировать по:</label>
+            <select id="sortSelect"
+              style="padding:6px;border-radius:6px;background:#0f1826;color:var(--text);border:1px solid var(--line)">
+              <option value="kpd">КПД</option>
+              <option value="slots">Слоты</option>
+              <option value="weighted">ВКПД</option>
+              <option value="rank">Ранг [П]</option>
+            </select>
+          </div>
+        </div>
+        <div class="pool" id="pool" data-drop-pool></div>
+      </div>
+    </div>
+
+    <!-- СТОРОНЫ -->
+    <div class="panel">
+      <h2>Сторона A</h2>
+      <div class="content">
+        <div class="team-header2">
+          <div class="meterRow"><span class="label">Кап ВКПД</span>
+            <div class="meter" data-meter-q><span style="transform:scaleX(0)"></span></div><span class="muted"
+              data-left-q>0</span>
+          </div>
+          <div class="meterRow"><span class="label">Кап слотов</span>
+            <div class="meter" data-meter-s><span style="transform:scaleX(0)"></span></div><span class="muted"
+              data-left-s>0</span>
+          </div>
+        </div>
+        <div class="summary" data-summary></div>
+        <div class="dropzone" data-drop></div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h2>Сторона B</h2>
+      <div class="content">
+        <div class="team-header2">
+          <div class="meterRow"><span class="label">Кап ВКПД</span>
+            <div class="meter" data-meter-q><span style="transform:scaleX(0)"></span></div><span class="muted"
+              data-left-q>0</span>
+          </div>
+          <div class="meterRow"><span class="label">Кап слотов</span>
+            <div class="meter" data-meter-s><span style="transform:scaleX(0)"></span></div><span class="muted"
+              data-left-s>0</span>
+          </div>
+        </div>
+        <div class="summary" data-summary></div>
+        <div class="dropzone" data-drop></div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h2>Сторона C</h2>
+      <div class="content">
+        <div class="team-header2">
+          <div class="meterRow"><span class="label">Кап ВКПД</span>
+            <div class="meter" data-meter-q><span style="transform:scaleX(0)"></span></div><span class="muted"
+              data-left-q>0</span>
+          </div>
+          <div class="meterRow"><span class="label">Кап слотов</span>
+            <div class="meter" data-meter-s><span style="transform:scaleX(0)"></span></div><span class="muted"
+              data-left-s>0</span>
+          </div>
+        </div>
+        <div class="summary" data-summary></div>
+        <div class="dropzone" data-drop></div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h2>Сторона D</h2>
+      <div class="content">
+        <div class="team-header2">
+          <div class="meterRow"><span class="label">Кап ВКПД</span>
+            <div class="meter" data-meter-q><span style="transform:scaleX(0)"></span></div><span class="muted"
+              data-left-q>0</span>
+          </div>
+          <div class="meterRow"><span class="label">Кап слотов</span>
+            <div class="meter" data-meter-s><span style="transform:scaleX(0)"></span></div><span class="muted"
+              data-left-s>0</span>
+          </div>
+        </div>
+        <div class="summary" data-summary></div>
+        <div class="dropzone" data-drop></div>
+      </div>
+    </div>
+  </section>
+
+  <script>
+    // === ДАННЫЕ ИЗ ПАМЯТИ (stats + info) ===
+    const INFO = JSON.parse(localStorage.getItem('tads_info') || '[]');
+    const STATS = JSON.parse(localStorage.getItem('tads_stats') || '[]');
+
+    const num = v => {
+      if (v == null) return 0;
+      const s = String(v).replace('%', '').replace(',', '.');
+      const n = +s; return Number.isFinite(n) ? n : 0;
+    };
+    const byTag = arr => {
+      const m = new Map();
+      arr.forEach(r => m.set(String(r['Тэг'] ?? r.tag ?? '').trim(), r));
+      return m;
+    };
+
+    // Сбор единого набора сквадов
+    const I = byTag(INFO), S = byTag(STATS);
+    const TAGS = [...new Set([...I.keys(), ...S.keys()])].filter(Boolean);
+
+    const squads = TAGS.map(tag => {
+      const a = I.get(tag) || {}, b = S.get(tag) || {};
+      const name = a['Название'] || a['name'] || tag;
+      const rank = b['Ранг [П]'] || b['Ранг'] || '';
+      const slots = num(a['Гарант. слотов'] ?? b['Гарант. слотов']);
+      const kpd = num(b['КПД [П]']);
+      const vkp = num(b['КПД [Взвешенный, П]']) || kpd * slots;
+      const inf = num(b['Убийств [% Пехота]']);
+      const veh = num(b['Убийств [% Техника]']);
+      const spec = a['Специализация'] || '';
+      return { tag, name, rank, slots, kpd, vkp, inf, veh, spec };
+    }).filter(x => x.tag);
+
+    // DOM
+    const poolEl = document.getElementById('pool');
+    const teamZones = [...document.querySelectorAll('[data-drop]')];
+    const assigned = new Map();
+
+    // Карточка (расширенная)
+    function squadCard(s) {
+      const div = document.createElement('div');
+      div.className = 'card'; div.draggable = true; div.dataset.tag = s.tag;
+      div.innerHTML = `
+        <div class="title">
+          <span class="name">${s.name}</span>
+          <span class="badge">${s.tag}</span>
+        </div>
+        <div class="grid">
+          <div class="kv">Ранг: <b>${s.rank || '-'}</b></div>
+          <div class="kv">Слоты: <b>${s.slots}</b></div>
+          <div class="kv">ВКПД: <b>${s.vkp.toFixed(2)}</b></div>
+          <div class="kv">КПД: <b>${s.kpd.toFixed(3)}</b></div>
+          <div class="kv">% Пехота: <b>${s.inf ? s.inf.toFixed(2) : '0.00'}%</b></div>
+          <div class="kv">% Техника: <b>${s.veh ? s.veh.toFixed(2) : '0.00'}%</b></div>
+          <div class="kv" style="grid-column:1/-1">Специализация: <b>${s.spec || '-'}</b></div>
+        </div>`;
+      return div;
+    }
+
+    // Поиск и сортировка
+    let currentSort = 'kpd';
+    document.getElementById('sortSelect').addEventListener('change', e => {
+      currentSort = e.target.value; renderPool(document.getElementById('q').value);
+    });
+    document.getElementById('q').addEventListener('input', e => renderPool(e.target.value));
+
+    function renderPool(filter = '') {
+      poolEl.innerHTML = '';
+      const q = filter.trim().toLowerCase();
+      const inTeams = new Set([...assigned.keys()]);
+      const filtered = squads
+        .filter(s => !inTeams.has(s.tag))
+        .filter(s => !q || s.name.toLowerCase().includes(q) || s.tag.toLowerCase().includes(q));
+
+      filtered.sort((a, b) => {
+        if (currentSort === 'slots') return b.slots - a.slots;
+        if (currentSort === 'weighted') return b.vkp - a.vkp;          // ВКПД
+        if (currentSort === 'rank') return String(a.rank).localeCompare(String(b.rank)); // Ранг
+        return b.kpd - a.kpd; // КПД
+      });
+
+      filtered.forEach(s => poolEl.appendChild(squadCard(s)));
+      bindDnD();
+    }
+
+    // Перетаскивание
+    let dragEl = null, dragOrigin = null;
+    function bindDnD() {
+      document.querySelectorAll('.card').forEach(el => {
+        el.addEventListener('dragstart', e => { dragEl = el; dragOrigin = el.parentElement; el.classList.add('dragging') });
+        el.addEventListener('dragend', e => { el.classList.remove('dragging'); dragEl = null; dragOrigin = null });
+      });
+    }
+    // drop зоны: стороны
+    teamZones.forEach(zone => {
+      zone.addEventListener('dragover', e => { e.preventDefault() });
+      zone.addEventListener('drop', e => {
+        e.preventDefault(); if (!dragEl) return;
+        const tag = dragEl.dataset.tag; const idx = teamZones.indexOf(zone);
+        assigned.set(tag, idx); zone.appendChild(dragEl); syncAll();
+      });
+    });
+    // drop зона: пул (возврат перетаскиванием)
+    poolEl.addEventListener('dragover', e => { e.preventDefault() });
+    poolEl.addEventListener('drop', e => {
+      e.preventDefault(); if (!dragEl) return;
+      const tag = dragEl.dataset.tag; assigned.delete(tag); poolEl.appendChild(dragEl); syncAll();
+    });
+    // быстрый возврат Alt+клик
+    document.addEventListener('click', e => {
+      if (e.altKey && e.target.closest('.card')) {
+        const card = e.target.closest('.card'); const tag = card.dataset.tag;
+        assigned.delete(tag); poolEl.appendChild(card); syncAll();
+      }
+    });
+
+    function currentTeamList(zone) {
+      const tags = [...zone.querySelectorAll('.card')].map(el => el.dataset.tag);
+      return tags.map(t => squads.find(x => x.tag === t));
+    }
+
+    // Панели сторон: Кап ВКПД / Кап слотов / суммы
+    function updateTeamPanel(panel) {
+      const zone = panel.querySelector('[data-drop]');
+      const barVKPD = panel.querySelector('[data-meter-q] span');
+      const barSlots = panel.querySelector('[data-meter-s] span');
+      const leftVKPD = panel.querySelector('[data-left-q]');
+      const leftSlots = panel.querySelector('[data-left-s]');
+      const summary = panel.querySelector('[data-summary]');
+
+      const list = currentTeamList(zone);
+      const sumSlots = list.reduce((a, x) => a + x.slots, 0);
+      const sumVKPD = list.reduce((a, x) => a + (x.kvpd || (x.kpd * x.slots)), 0); // если нет отдельного поля ВКПД
+      const avgKPD = list.length ? (list.reduce((a, x) => a + x.kpd, 0) / list.length) : 0;
+
+      // лимиты (кап)
+      const capSlots = 54;
+      const capVKPD = 52; // при необходимости поставь общий кап ВКПД
+
+      const pctSlots = Math.min(1, sumSlots / capSlots);
+      const pctVKPD = Math.min(1, sumVKPD / capVKPD);
+
+      barSlots.style.transform = `scaleX(${pctSlots})`;
+      barVKPD.style.transform = `scaleX(${pctVKPD})`;
+
+      barSlots.style.background = sumSlots > capSlots
+        ? 'linear-gradient(90deg,#ff6b6b,#ffa8a8)'
+        : 'linear-gradient(90deg,#2ea043,#3fb950)';
+      barVKPD.style.background = sumVKPD > capVKPD
+        ? 'linear-gradient(90deg,#ff6b6b,#ffa8a8)'
+        : 'linear-gradient(90deg,#2ea043,#3fb950)';
+
+      leftSlots.textContent = `${sumSlots.toFixed(0)} / ${capSlots}`;
+      leftVKPD.textContent = `${sumVKPD.toFixed(2)} / ${capVKPD}`;
+
+      summary.innerHTML = `
+    <div class="b">Отрядов <div class="v">${list.length}</div></div>
+    <div class="b">Σ слотов <div class="v ${sumSlots > capSlots ? 'bad' : (sumSlots >= capSlots * 0.9 ? 'ok' : 'warn')}">${sumSlots}</div></div>
+    <div class="b">КПД ср. <div class="v">${avgKPD.toFixed(3)}</div></div>
+    <div class="b">Σ ВКПД <div class="v">${sumVKPD.toFixed(2)}</div></div>`;
+    }
+
+
+    function syncAll() {
+      document.querySelectorAll('.panel').forEach(p => {
+        if (p.querySelector('[data-drop]')) updateTeamPanel(p);
+      });
+      renderPool(document.getElementById('q').value);
+      persist();
+    }
+
+    // Сохранение/восстановление раскладки
+    const KEY = 'tsg_draft_v2';
+    function persist() { localStorage.setItem(KEY, JSON.stringify([...assigned.entries()])); }
+    function restore() {
+      try {
+        const raw = localStorage.getItem(KEY); if (!raw) return;
+        const state = new Map(JSON.parse(raw));
+        state.forEach((team, tag) => {
+          const card = [...poolEl.querySelectorAll('.card')].find(c => c.dataset.tag === tag) || squadCard(squads.find(s => s.tag === tag));
+          assigned.set(tag, team); teamZones[team]?.appendChild(card);
+        });
+      } catch { }
+    }
+
+    document.getElementById('reset').addEventListener('click', () => {
+      assigned.clear(); renderPool(); persist(); syncAll(); location.reload();
+    });
+
+    // Старт
+    renderPool(''); restore(); syncAll();
+  </script>
+</body>
+
+</html>

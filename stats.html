@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Статистика отрядов</title>
+  <style>
+    :root {
+      --bg: #0c1117;
+      --card: #101823;
+      --line: #263040;
+      --accent: #3fb950;
+      --text: #e6edf3;
+      --muted: #7d8590;
+      --hover: #13233a;
+    }
+
+    * {
+      box-sizing: border-box
+    }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: Inter, system-ui, sans-serif
+    }
+
+    /* Header (высота 72px, как index.html) */
+    header {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 72px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 28px;
+      background: #0b1522;
+      border-bottom: 1px solid var(--line);
+      z-index: 100;
+    }
+
+    header h1 {
+      margin: 0;
+      font-size: 20px;
+      font-weight: 600
+    }
+
+    header .actions {
+      display: flex;
+      gap: 10px
+    }
+
+    button {
+      background: #162233;
+      border: 1px solid var(--line);
+      color: var(--text);
+      padding: 8px 14px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: .2s;
+    }
+
+    button:hover {
+      border-color: var(--accent);
+      background: #122033
+    }
+
+    /* Main area */
+    main {
+      padding: 90px 28px 40px;
+    }
+
+    .panel {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      box-shadow: 0 0 20px #0003;
+      padding: 20px;
+      overflow: hidden;
+    }
+
+    input[type=file] {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #0f1826;
+      color: var(--text);
+      padding: 6px;
+      margin-top: 10px;
+    }
+
+    /* Table wrapper and table */
+    .table-wrap {
+      overflow: auto;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      margin-top: 14px;
+      max-height: calc(100vh - 220px);
+    }
+
+    table {
+      border-collapse: collapse;
+      width: max-content;
+      min-width: 1800px;
+      font-size: 13px;
+      background: var(--card);
+    }
+
+    th,
+    td {
+      border: 1px solid var(--line);
+      padding: 6px 8px;
+      text-align: left;
+      white-space: nowrap;
+    }
+
+    th {
+      background: #121b2c;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+
+    tr:nth-child(even) {
+      background: #0f1826;
+    }
+
+    tr:hover {
+      background: var(--hover);
+    }
+
+    footer {
+      text-align: right;
+      color: var(--muted);
+      font-size: 12px;
+      padding: 10px 28px;
+    }
+  </style>
+</head>
+
+<body>
+  <header>
+    <h1>TADS</h1>
+    <div class="actions">
+      <button onclick="location.href='index.html'">← Драфт</button>
+      <button onclick="location.href='stats.html'">Статистика</button>
+      <button onclick="location.href='info.html'">Общая инфо</button>
+    </div>
+  </header>
+
+  <main>
+    <div class="panel">
+      <h2>Статистика отрядов</h2>
+      <input id="fileInput" type="file" accept=".tsv,.csv,.json" />
+      <div class="table-wrap">
+        <table id="tbl">
+          <thead>
+            <tr id="thead"></tr>
+          </thead>
+          <tbody id="tbody"></tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+
+  <footer>Данные TADS • v1.0</footer>
+
+  <script>
+    const COLS = ["Рейтинг", "Ранг [П]", "До повышения Ранг [П]", "Ранг [С]", "До повышения Ранг [С]", "Тэг", "Гарант. слотов", "Посещаемость", "Выживаемость", "Смертей", "Убийств [Всего]", "Убийств [Пехота]", "Убийств [Техника]", "Убийств [Союзников, ТК]", "У/П", "У/C", "ТК/П", "ТК/У", "C/П", "УНС", "КПД [КС]", "КПД [П]", "КПД [С]", "КПД [Взвешенный, П]", "КПД [Взвешенный, С]", "Риск-индекс", "Смертность [%]", "Убийств [% Пехота]", "Убийств [% Техника]"];
+    const thead = document.getElementById('thead'), tbody = document.getElementById('tbody');
+    thead.innerHTML = COLS.map(c => `<th>${c}</th>`).join('');
+    document.getElementById('fileInput').addEventListener('change', e => {
+      const f = e.target.files[0]; if (!f) return;
+      const r = new FileReader();
+      r.onload = ev => {
+        let data; /\.(json)$/i.test(f.name) ? data = JSON.parse(ev.target.result) : data = parseText(ev.target.result);
+        render(data); localStorage.setItem('tads_stats', JSON.stringify(data));
+      }; r.readAsText(f, 'utf-8');
+    });
+    function parseText(t) {
+      const lines = t.replace(/\r/g, '').trim().split('\n');
+      const sep = lines[0].includes('\t') ? '\t' : ','; const h = lines[0].split(sep).map(x => x.trim());
+      return lines.slice(1).map(r => {
+        const v = r.split(sep), o = {};
+        h.forEach((k, i) => {
+          let val = (v[i] ?? '').trim();
+          if (/^-?\d+,\d+$/.test(val)) val = val.replace(',', '.');
+          if (/%$/.test(val)) val = val.replace('%', '');
+          o[k] = val;
+        });
+        return o;
+      });
+    }
+    function render(rows) {
+      tbody.innerHTML = '';
+      rows.forEach(r => {
+        tbody.insertAdjacentHTML('beforeend', `<tr>${COLS.map(k => `<td>${r[k] ?? ''}</td>`).join('')}</tr>`);
+      });
+    }
+
+    // --- авто-загрузка по умолчанию из data/stats ---
+    fetch('data/stats.tsv')
+      .then(r => r.ok ? r.text() : Promise.reject('no file'))
+      .then(t => {
+        const data = parseText(t);
+        render(data);
+        localStorage.setItem('tads_stats', JSON.stringify(data));
+      })
+      .catch(() => console.log('Файл data/stats.tsv не найден, ожидается загрузка вручную.'));
+
+    // --- восстановление из localStorage ---
+    (() => { try { const s = localStorage.getItem('tads_stats'); if (s) render(JSON.parse(s)); } catch { } })();
+  </script>
+
+</body>
+
+</html>
